@@ -11,14 +11,9 @@
         android:roundIcon="@drawable/cocktail_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.CocktailDB">
+        
         <activity
-            android:name=".screen.MainActivity"
-            android:exported="true"
-            android:label="@string/app_name">
-
-        </activity>
-        <activity
-            android:name=".screen.splashscreen.SplashScreenActivity"
+            android:name=".screen.splash.SplashScreenActivity"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,9 +21,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".screen.authenticate.LoginActivity"
-            android:exported="true" />
+            android:name=".screen.home.HomeScreenActivity"
+            android:exported="false" />
 
         <meta-data
             android:name="preloaded_fonts"
