@@ -25,6 +25,7 @@ class HomePresenter(
     }
 
     override fun onStop() {
+        // Cleanup if needed
     }
 
     private fun loadCategories() {
