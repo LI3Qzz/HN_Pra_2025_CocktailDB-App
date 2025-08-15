@@ -1,6 +1,6 @@
 package com.sun.cocktaildb.utils.base
 
-interface BasePresenter<T> {
+interface BasePresenter<T : BaseView> {
     fun onStart()
 
     fun onStop()
