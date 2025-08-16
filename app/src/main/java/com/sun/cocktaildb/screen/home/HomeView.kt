@@ -12,6 +12,8 @@ interface HomeView : BaseView {
     fun onCategoryClicked(category: Category)
 
     fun onCocktailClicked(cocktail: Cocktail)
+    
+    fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean)
 
     fun onBottomNavigationItemSelected(itemId: Int)
 }
