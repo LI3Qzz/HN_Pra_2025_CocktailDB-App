@@ -10,6 +10,7 @@ import com.sun.cocktaildb.data.repository.impl.CocktailRepositoryImpl
 import com.sun.cocktaildb.databinding.ActivityHomeScreenBinding
 import com.sun.cocktaildb.screen.home.adapter.CategoryAdapter
 import com.sun.cocktaildb.screen.home.adapter.PopularCocktailAdapter
+import com.sun.cocktaildb.screen.categorydetail.CategoryDetailActivity
 import com.sun.cocktaildb.utils.base.BaseActivity
 
 class HomeScreenActivity : BaseActivity(), HomeView {
@@ -94,8 +95,8 @@ class HomeScreenActivity : BaseActivity(), HomeView {
     }
 
     override fun onCategoryClicked(category: Category) {
-        Toast.makeText(this, "Category clicked: ${category.name}", Toast.LENGTH_SHORT).show()
-        // Category detail navigation
+        val intent = CategoryDetailActivity.newIntent(this, category)
+        startActivity(intent)
     }
 
     override fun onCocktailClicked(cocktail: Cocktail) {
