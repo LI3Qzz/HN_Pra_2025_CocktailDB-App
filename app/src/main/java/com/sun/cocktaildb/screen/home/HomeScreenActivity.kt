@@ -11,6 +11,7 @@ import com.sun.cocktaildb.databinding.ActivityHomeScreenBinding
 import com.sun.cocktaildb.screen.home.adapter.CategoryAdapter
 import com.sun.cocktaildb.screen.home.adapter.PopularCocktailAdapter
 import com.sun.cocktaildb.screen.categorydetail.CategoryDetailActivity
+import com.sun.cocktaildb.screen.search.SearchActivity
 import com.sun.cocktaildb.utils.base.BaseActivity
 
 class HomeScreenActivity : BaseActivity(), HomeView {
@@ -118,8 +119,8 @@ class HomeScreenActivity : BaseActivity(), HomeView {
                 // Favorites navigation
             }
             R.id.navigation_search -> {
-                Toast.makeText(this, "Search clicked", Toast.LENGTH_SHORT).show()
-                // Search navigation
+                val intent = SearchActivity.newIntent(this)
+                startActivity(intent)
             }
             R.id.navigation_profile -> {
                 Toast.makeText(this, "Profile clicked", Toast.LENGTH_SHORT).show()
