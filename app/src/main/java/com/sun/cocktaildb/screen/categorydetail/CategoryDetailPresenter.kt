@@ -6,6 +6,7 @@ import com.sun.cocktaildb.data.model.Category
 import com.sun.cocktaildb.data.model.Cocktail
 import com.sun.cocktaildb.data.repository.CocktailRepository
 import com.sun.cocktaildb.utils.base.BasePresenter
+import com.sun.cocktaildb.utils.FavoriteManager
 import java.util.concurrent.Executors
 
 class CategoryDetailPresenter(
@@ -34,8 +35,12 @@ class CategoryDetailPresenter(
         executor.execute {
             try {
                 val cocktails = cocktailRepository.getCocktailsByCategory(category.id)
+                // Update favorite status based on FavoriteManager
+                val updatedCocktails = cocktails.map { cocktail ->
+                    cocktail.copy(isFavorite = FavoriteManager.isFavorite(cocktail.id))
+                }
                 mainHandler.post {
-                    view?.showCocktails(cocktails)
+                    view?.showCocktails(updatedCocktails)
                     view?.hideLoading()
                 }
             } catch (e: Exception) {
@@ -49,6 +54,10 @@ class CategoryDetailPresenter(
 
     fun onCocktailClicked(cocktail: Cocktail) {
         view?.onCocktailClicked(cocktail)
+    }
+    
+    fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
+        view?.onFavoriteClicked(cocktail, isFavorite)
     }
 
     fun onBackClicked() {

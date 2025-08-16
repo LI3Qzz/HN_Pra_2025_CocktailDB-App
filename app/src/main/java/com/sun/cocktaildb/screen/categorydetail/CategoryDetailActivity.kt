@@ -7,10 +7,12 @@ import android.widget.Toast
 import androidx.recyclerview.widget.GridLayoutManager
 import com.sun.cocktaildb.data.model.Category
 import com.sun.cocktaildb.data.model.Cocktail
+import com.sun.cocktaildb.R
 import com.sun.cocktaildb.data.repository.impl.CocktailRepositoryImpl
 import com.sun.cocktaildb.databinding.ActivityCategoryDetailBinding
 import com.sun.cocktaildb.screen.home.adapter.PopularCocktailAdapter
 import com.sun.cocktaildb.utils.base.BaseActivity
+import com.sun.cocktaildb.utils.FavoriteManager
 
 class CategoryDetailActivity : BaseActivity(), CategoryDetailView {
     private lateinit var binding: ActivityCategoryDetailBinding
@@ -49,9 +51,14 @@ class CategoryDetailActivity : BaseActivity(), CategoryDetailView {
     }
 
     private fun setupRecyclerView() {
-        cocktailAdapter = PopularCocktailAdapter { cocktail ->
-            presenter.onCocktailClicked(cocktail)
-        }
+        cocktailAdapter = PopularCocktailAdapter(
+            onCocktailClickListener = { cocktail ->
+                presenter.onCocktailClicked(cocktail)
+            },
+            onFavoriteClickListener = { cocktail, isFavorite ->
+                presenter.onFavoriteClicked(cocktail, isFavorite)
+            }
+        )
         binding.rvCocktails.apply {
             layoutManager = GridLayoutManager(this@CategoryDetailActivity, 2)
             adapter = cocktailAdapter
@@ -98,6 +105,24 @@ class CategoryDetailActivity : BaseActivity(), CategoryDetailView {
     override fun onCocktailClicked(cocktail: Cocktail) {
         Toast.makeText(this, "Cocktail clicked: ${cocktail.name}", Toast.LENGTH_SHORT).show()
         // Navigate to cocktail detail
+    }
+    
+    override fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
+        if (isFavorite) {
+            Toast.makeText(this, getString(R.string.added_to_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, getString(R.string.removed_from_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
+        }
+        
+        // Update the cocktail favorite status in the adapter
+        cocktailAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
+        
+        // Update favorite status in FavoriteManager
+        if (isFavorite) {
+            FavoriteManager.addToFavorites(cocktail)
+        } else {
+            FavoriteManager.removeFromFavorites(cocktail)
+        }
     }
 
     override fun navigateBack() {

@@ -6,15 +6,15 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="8dp">
+    android:padding="@dimen/card_margin">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        app:cardCornerRadius="60dp"
-        app:cardElevation="4dp"
+        android:layout_width="@dimen/category_item_size"
+        android:layout_height="@dimen/category_item_size"
+        app:cardCornerRadius="@dimen/category_corner_radius"
+        app:cardElevation="@dimen/card_elevation"
         app:cardBackgroundColor="@color/white"
-        app:strokeWidth="2dp"
+        app:strokeWidth="@dimen/category_stroke_width"
         app:strokeColor="@color/black"
         app:cardUseCompatPadding="true">
 
@@ -32,10 +32,10 @@
         android:id="@+id/tv_category_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/card_margin"
         android:text="Sour"
         android:textColor="@color/black"
-        android:textSize="14sp"
+        android:textSize="@dimen/text_size_category"
         android:textStyle="bold"
         android:gravity="center"
         tools:text="Category Name" />

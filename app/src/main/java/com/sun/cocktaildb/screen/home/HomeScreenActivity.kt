@@ -13,6 +13,7 @@ import com.sun.cocktaildb.screen.home.adapter.PopularCocktailAdapter
 import com.sun.cocktaildb.screen.categorydetail.CategoryDetailActivity
 import com.sun.cocktaildb.screen.search.SearchActivity
 import com.sun.cocktaildb.utils.base.BaseActivity
+import com.sun.cocktaildb.utils.FavoriteManager
 
 class HomeScreenActivity : BaseActivity(), HomeView {
     private lateinit var binding: ActivityHomeScreenBinding
@@ -48,9 +49,14 @@ class HomeScreenActivity : BaseActivity(), HomeView {
 
         // Setup Popular Cocktails RecyclerView
         popularCocktailAdapter =
-            PopularCocktailAdapter { cocktail ->
-                presenter.onCocktailClicked(cocktail)
-            }
+            PopularCocktailAdapter(
+                onCocktailClickListener = { cocktail ->
+                    presenter.onCocktailClicked(cocktail)
+                },
+                onFavoriteClickListener = { cocktail, isFavorite ->
+                    presenter.onFavoriteClicked(cocktail, isFavorite)
+                }
+            )
         binding.rvPopular.apply {
             layoutManager = GridLayoutManager(this@HomeScreenActivity, 2)
             adapter = popularCocktailAdapter
@@ -105,8 +111,34 @@ class HomeScreenActivity : BaseActivity(), HomeView {
     }
 
     override fun onCocktailClicked(cocktail: Cocktail) {
-        Toast.makeText(this, "Navigate to DetailScreen for: ${cocktail.name}", Toast.LENGTH_SHORT).show()
-        // Cocktail detail navigation
+        Toast.makeText(this, getString(R.string.navigate_to_detail_screen, cocktail.name), Toast.LENGTH_SHORT).show()
+        // TODO: Navigate to detail screen later
+    }
+    
+    override fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
+        if (isFavorite) {
+            Toast.makeText(this, getString(R.string.added_to_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, getString(R.string.removed_from_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
+        }
+        
+        // Update the cocktail favorite status in the adapter
+        popularCocktailAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
+        
+        // Update favorite status in FavoriteManager
+        if (isFavorite) {
+            FavoriteManager.addToFavorites(cocktail)
+        } else {
+            FavoriteManager.removeFromFavorites(cocktail)
+        }
+        
+        // Update favorites count in bottom navigation if available
+        updateFavoritesCount()
+    }
+    
+    private fun updateFavoritesCount() {
+        val favoritesCount = FavoriteManager.getFavoriteCocktails().size
+        // TODO: Update badge count in bottom navigation if supported
     }
 
     override fun onBottomNavigationItemSelected(itemId: Int) {

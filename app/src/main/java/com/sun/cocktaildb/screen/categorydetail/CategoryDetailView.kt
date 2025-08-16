@@ -11,5 +11,7 @@ interface CategoryDetailView : BaseView {
     
     fun onCocktailClicked(cocktail: Cocktail)
     
+    fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean)
+    
     fun navigateBack()
 }
