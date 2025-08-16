@@ -94,12 +94,12 @@ class HomeScreenActivity : BaseActivity(), HomeView {
     }
 
     override fun onCategoryClicked(category: Category) {
-        Toast.makeText(this, "Category clicked: ${category.name}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Navigate to CategoryScreen for: ${category.name}", Toast.LENGTH_SHORT).show()
         // Category detail navigation
     }
 
     override fun onCocktailClicked(cocktail: Cocktail) {
-        Toast.makeText(this, "Cocktail clicked: ${cocktail.name}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Navigate to DetailScreen for: ${cocktail.name}", Toast.LENGTH_SHORT).show()
         // Cocktail detail navigation
     }
 
