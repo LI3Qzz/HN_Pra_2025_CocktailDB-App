@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-parcelize")
+    id("com.google.gms.google-services")
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
 }
 
@@ -59,5 +60,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
 
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
     testImplementation(kotlin("test"))
 }
