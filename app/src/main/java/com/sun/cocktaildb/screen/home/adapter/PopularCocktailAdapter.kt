@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory
 import android.util.LruCache
 import android.os.Handler
 import android.os.Looper
+import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.RecyclerView
 import com.sun.cocktaildb.R
 import com.sun.cocktaildb.data.model.Cocktail
@@ -20,6 +21,7 @@ import java.util.concurrent.Executors
 
 class PopularCocktailAdapter(
     private val onCocktailClickListener: (Cocktail) -> Unit,
+    private val onFavoriteClickListener: (Cocktail, Boolean) -> Unit,
 ) : RecyclerView.Adapter<PopularCocktailAdapter.CocktailViewHolder>() {
     private val cocktails = mutableListOf<Cocktail>()
     private val imageCache: LruCache<String, Bitmap> = object : LruCache<String, Bitmap>((Runtime.getRuntime().maxMemory() / 1024 / 8).toInt()) {
@@ -33,6 +35,19 @@ class PopularCocktailAdapter(
     fun updateCocktails(newCocktails: List<Cocktail>) {
         cocktails.clear()
         cocktails.addAll(newCocktails)
+        notifyDataSetChanged()
+    }
+    
+    fun updateCocktailFavoriteStatus(cocktailId: String, isFavorite: Boolean) {
+        val index = cocktails.indexOfFirst { it.id == cocktailId }
+        if (index != -1) {
+            val updatedCocktail = cocktails[index].copy(isFavorite = isFavorite)
+            cocktails[index] = updatedCocktail
+            notifyItemChanged(index)
+        }
+    }
+    
+    fun refreshFavorites() {
         notifyDataSetChanged()
     }
 
@@ -57,6 +72,7 @@ class PopularCocktailAdapter(
 
     inner class CocktailViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val ivCocktail: ImageView = itemView.findViewById(R.id.iv_cocktail)
+        private val ivFavorite: ImageView = itemView.findViewById(R.id.iv_favorite)
         private val tvCocktailName: TextView = itemView.findViewById(R.id.tv_cocktail_name)
         private val tvCocktailDescription: TextView = itemView.findViewById(R.id.tv_cocktail_description)
 
@@ -64,6 +80,9 @@ class PopularCocktailAdapter(
             tvCocktailName.text = cocktail.name
             tvCocktailDescription.text = ""
             ivCocktail.setImageResource(R.drawable.placeholder)
+            
+            // Set favorite icon based on cocktail's favorite status
+            updateFavoriteIcon(cocktail.isFavorite)
 
             val imageUrl = cocktail.imageUrl
             ivCocktail.tag = imageUrl
@@ -90,8 +109,18 @@ class PopularCocktailAdapter(
                 }
             }
 
+            // Set click listeners
             itemView.setOnClickListener {
                 onCocktailClickListener(cocktail)
+            }
+            
+            ivFavorite.setOnClickListener {
+                // Play animation
+                val animation = AnimationUtils.loadAnimation(itemView.context, R.anim.favorite_scale)
+                ivFavorite.startAnimation(animation)
+                
+                val newFavoriteStatus = !cocktail.isFavorite
+                onFavoriteClickListener(cocktail, newFavoriteStatus)
             }
         }
 
@@ -134,6 +163,14 @@ class PopularCocktailAdapter(
             }
         }
 
+        private fun updateFavoriteIcon(isFavorite: Boolean) {
+            if (isFavorite) {
+                ivFavorite.setImageResource(R.drawable.ic_favorite_filled_black_24dp)
+            } else {
+                ivFavorite.setImageResource(R.drawable.ic_favorite_border_black_24dp)
+            }
+        }
+        
         private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
             val (height: Int, width: Int) = options.run { outHeight to outWidth }
             var inSampleSize = 1

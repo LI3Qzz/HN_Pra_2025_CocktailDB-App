@@ -12,34 +12,34 @@
         android:id="@+id/header_section"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dp_200"
-        android:background="@drawable/header_background"
+        android:background="@drawable/header_background_img"
         app:layout_constraintTop_toTopOf="parent">
 
         <!-- Back Button -->
         <ImageButton
             android:id="@+id/btn_back"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="32dp"
+            android:layout_width="@dimen/button_size"
+            android:layout_height="@dimen/button_size"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="@dimen/text_margin_bottom_large"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Back"
             android:src="@drawable/ic_back_arrow"
-            android:tint="@color/white"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/black" />
 
         <!-- Category Title -->
         <TextView
             android:id="@+id/tv_category_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:fontFamily="@font/aclonica"
             android:gravity="center"
             android:text="Cocktails"
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:textSize="@dimen/sp_32"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -61,7 +61,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="@dimen/activity_horizontal_margin">
 
             <!-- Loading Indicator -->
             <ProgressBar
@@ -69,7 +69,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="@dimen/text_margin_bottom_large"
                 android:indeterminateTint="@color/colorPrimary"
                 android:visibility="gone" />
 

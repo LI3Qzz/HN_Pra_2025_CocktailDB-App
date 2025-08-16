@@ -12,7 +12,7 @@
         android:id="@+id/header_section"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dp_200"
-        android:background="@drawable/header_background"
+        android:background="@drawable/header_background_img"
         app:layout_constraintTop_toTopOf="parent">
 
         <!-- Title -->
@@ -21,7 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Cocktail"
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:textSize="@dimen/sp_32"
             android:textStyle="bold"
             android:fontFamily="@font/aclonica"
@@ -44,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="@dimen/activity_horizontal_margin">
 
             <!-- Categories Section -->
             <TextView
@@ -53,9 +53,9 @@
                 android:layout_height="wrap_content"
                 android:text="Categories"
                 android:textColor="@color/black"
-                android:textSize="24sp"
+                android:textSize="@dimen/text_size_large"
                 android:textStyle="bold"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="@dimen/activity_horizontal_margin" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_categories"
@@ -72,10 +72,10 @@
                 android:layout_height="wrap_content"
                 android:text="Popular"
                 android:textColor="@color/black"
-                android:textSize="24sp"
+                android:textSize="@dimen/text_size_large"
                 android:textStyle="bold"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginTop="@dimen/text_margin_bottom_large"
+                android:layout_marginBottom="@dimen/activity_horizontal_margin" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_popular"
