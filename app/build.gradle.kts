@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-parcelize")
     id("com.google.gms.google-services")
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
 }
