@@ -12,7 +12,9 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/cocktail_logo"
         android:supportsRtl="true"
-        android:theme="@style/Theme.CocktailDB">
+        android:theme="@style/Theme.CocktailDB"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:usesCleartextTraffic="true">
         
         <activity
             android:name=".screen.splash.SplashScreenActivity"
@@ -30,10 +32,6 @@
 
         <activity
             android:name=".screen.categorydetail.CategoryDetailActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".screen.search.SearchActivity"
             android:exported="false" />
 
         <meta-data

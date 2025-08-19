@@ -3,8 +3,10 @@ package com.sun.cocktaildb.screen.search.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.sun.cocktaildb.R
 import com.sun.cocktaildb.data.model.Cocktail
 import com.sun.cocktaildb.databinding.ItemSearchCocktailBinding
+import com.sun.cocktaildb.utils.ImageLoader
 
 class SearchAdapter(
     private val onCocktailClicked: (Cocktail) -> Unit
@@ -50,16 +52,34 @@ class SearchAdapter(
                 tvCocktailName.text = cocktail.name
                 
                 // Display ingredients in the format shown in the image
-                val ingredientsText = if (cocktail.ingredients.isNotEmpty()) {
-                    "1/2 oz ${cocktail.ingredients.first()}"
-                } else {
-                    "1/2 oz Ingredients not available"
-                }
+                val ingredientsText = getIngredientsText(cocktail)
                 tvCocktailDescription.text = ingredientsText
                 
-                // TODO: Load image using Glide or Picasso
-                // For now, using placeholder
-                ivCocktailImage.setImageResource(com.sun.cocktaildb.R.drawable.placeholder)
+                // Load image using ImageLoader utility
+                val imageUrl = cocktail.imageUrl
+                if (imageUrl.isNotEmpty() && imageUrl != "https://example.com/placeholder.jpg") {
+                    ImageLoader.loadImage(ivCocktailImage, imageUrl, R.drawable.placeholder)
+                } else {
+                    ivCocktailImage.setImageResource(R.drawable.placeholder)
+                }
+            }
+        }
+        
+        // Extract complex logic into separate method for better readability and testability
+        private fun getIngredientsText(cocktail: Cocktail): String {
+            return if (cocktail.ingredients.isNotEmpty() && 
+                cocktail.ingredients.first() != "Ingredients not available") {
+                // Show first ingredient with its measure if available
+                val firstIngredient = cocktail.ingredients.first()
+                if (firstIngredient.contains(" ")) {
+                    // If ingredient already has measure, use as is
+                    firstIngredient
+                } else {
+                    // Add default measure
+                    "1/2 oz $firstIngredient"
+                }
+            } else {
+                "1/2 oz Ingredients not available"
             }
         }
     }

@@ -58,6 +58,13 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
+    
+    // Add RecyclerView and CardView dependencies (Android native)
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.cardview:cardview:1.0.0")
+    
+    // Add Glide for image loading
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(platform(libs.firebase.bom))

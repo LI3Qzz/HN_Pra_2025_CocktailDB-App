@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/activity_horizontal_margin">
+
+    <!-- Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="@dimen/dp_40" />
+
+    <!-- Categories Section -->
+    <TextView
+        android:id="@+id/tv_categories_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Categories"
+        android:textColor="@color/black"
+        android:textSize="@dimen/text_size_large"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/activity_horizontal_margin" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_categories"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_category" />
+
+    <!-- Popular Section -->
+    <TextView
+        android:id="@+id/tv_popular_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Popular"
+        android:textColor="@color/black"
+        android:textSize="@dimen/text_size_large"
+        android:textStyle="bold"
+        android:layout_marginTop="@dimen/text_margin_bottom_large"
+        android:layout_marginBottom="@dimen/activity_horizontal_margin" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_popular"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:nestedScrollingEnabled="false"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="2"
+        tools:listitem="@layout/item_popular_cocktail" />
+
+</LinearLayout>
