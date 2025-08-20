@@ -1,7 +1,7 @@
 package com.sun.cocktaildb.screen.authenticate.login
 
 import com.sun.cocktaildb.data.repository.AuthRepository
-import com.sun.cocktaildb.data.repository.FirebaseAuthImplement
+import com.sun.cocktaildb.data.repository.impl.FirebaseAuthImplement
 
 class LoginPresenter(
     private val authRepository: AuthRepository = FirebaseAuthImplement(),
@@ -21,10 +21,6 @@ class LoginPresenter(
     }
 
     override fun login() {
-        if (!validateInputs()) {
-            return
-        }
-
         view?.showLoading()
 
         val email = view?.getEmail() ?: ""

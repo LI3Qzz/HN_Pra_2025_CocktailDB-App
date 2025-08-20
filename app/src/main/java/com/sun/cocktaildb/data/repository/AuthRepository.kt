@@ -4,13 +4,13 @@ interface AuthRepository {
     fun register(
         email: String,
         password: String,
-        callback: (Result<Unit>) -> Unit
+        callback: (Result<String>) -> Unit,
     )
 
     fun login(
         email: String,
         password: String,
-        callback: (Result<Unit>) -> Unit
+        callback: (Result<String>) -> Unit,
     )
 
     fun logout()

@@ -22,31 +22,32 @@ class CocktailRepositoryImpl : CocktailRepository {
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Category>()
-            
+
             for (i in 0 until drinksArray.length()) {
                 val item = drinksArray.optJSONObject(i)
                 val name = item?.optString("strCategory").orEmpty()
-                
+
                 if (name.isNotEmpty()) {
-                    // Get a sample cocktail from this category to use as image
                     val sampleCocktails = getCocktailsByCategory(name)
-                    val sampleImage = if (sampleCocktails.isNotEmpty()) {
-                        sampleCocktails.first().imageUrl
-                    } else {
-                        "https://example.com/$name.jpg"
-                    }
-                    
-                    result.add(Category(
-                        id = name,
-                        name = name,
-                        description = "Various $name types",
-                        imageUrl = sampleImage
-                    ))
+                    val sampleImage =
+                        if (sampleCocktails.isNotEmpty()) {
+                            sampleCocktails.first().imageUrl
+                        } else {
+                            "https://example.com/$name.jpg"
+                        }
+
+                    result.add(
+                        Category(
+                            id = name,
+                            name = name,
+                            description = "Various $name types",
+                            imageUrl = sampleImage,
+                        ),
+                    )
                 }
             }
             return result
         } catch (e: Exception) {
-            // Fallback to mock data if API fails
             return listOf(
                 Category("1", "Cocktails", "Classic cocktails", "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg"),
                 Category("2", "Beer", "Various beer types", "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg"),
@@ -63,10 +64,10 @@ class CocktailRepositoryImpl : CocktailRepository {
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
-            
+
             // Take first 6 cocktails as popular
             val limit = minOf(6, drinksArray.length())
-            
+
             for (i in 0 until limit) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
@@ -76,48 +77,52 @@ class CocktailRepositoryImpl : CocktailRepository {
                 val alcoholic = item?.optString("strAlcoholic").orEmpty()
                 val glass = item?.optString("strGlass").orEmpty()
                 val tags = item?.optString("strTags").orEmpty()
-                
+
                 if (id.isNotEmpty() && name.isNotEmpty()) {
                     // Extract ingredients (strIngredient1 to strIngredient15)
                     val ingredients = mutableListOf<String>()
                     val measures = mutableListOf<String>()
-                    
+
                     for (j in 1..15) {
                         val ingredient = item.optString("strIngredient$j").orEmpty()
                         val measure = item.optString("strMeasure$j").orEmpty()
-                        
+
                         if (ingredient.isNotEmpty()) {
                             ingredients.add(ingredient)
                             measures.add(measure)
                         }
                     }
-                    
+
                     // Combine ingredients with measures
-                    val ingredientsWithMeasures = if (ingredients.size == measures.size) {
-                        ingredients.mapIndexed { index, ingredient ->
-                            "${measures[index]} $ingredient".trim()
+                    val ingredientsWithMeasures =
+                        if (ingredients.size == measures.size) {
+                            ingredients.mapIndexed { index, ingredient ->
+                                "${measures[index]} $ingredient".trim()
+                            }
+                        } else {
+                            ingredients
                         }
-                    } else {
-                        ingredients
-                    }
-                    
-                    val description = buildString {
-                        append("Popular cocktail")
-                        if (category.isNotEmpty()) append(" • Category: $category")
-                        if (alcoholic.isNotEmpty()) append(" • Type: $alcoholic")
-                        if (glass.isNotEmpty()) append(" • Glass: $glass")
-                        if (tags.isNotEmpty()) append(" • Tags: $tags")
-                    }
-                    
-                    result.add(Cocktail(
-                        id = id,
-                        name = name,
-                        description = description,
-                        imageUrl = thumb.ifEmpty { "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg" },
-                        ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
-                        instructions = "Instructions not available",
-                        category = category.ifEmpty { "Unknown" }
-                    ))
+
+                    val description =
+                        buildString {
+                            append("Popular cocktail")
+                            if (category.isNotEmpty()) append(" • Category: $category")
+                            if (alcoholic.isNotEmpty()) append(" • Type: $alcoholic")
+                            if (glass.isNotEmpty()) append(" • Glass: $glass")
+                            if (tags.isNotEmpty()) append(" • Tags: $tags")
+                        }
+
+                    result.add(
+                        Cocktail(
+                            id = id,
+                            name = name,
+                            description = description,
+                            imageUrl = thumb.ifEmpty { "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg" },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
+                            instructions = "Instructions not available",
+                            category = category.ifEmpty { "Unknown" },
+                        ),
+                    )
                 }
             }
             return result
@@ -131,7 +136,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
                     ingredients = listOf("1 1/2 oz Tequila", "1/2 oz Triple sec", "1 oz Lime juice", "Salt"),
                     instructions = "Rub the rim of the glass with the lime slice to make the salt stick to it...",
-                    category = "Ordinary Drink"
+                    category = "Ordinary Drink",
                 ),
                 Cocktail(
                     id = "2",
@@ -140,7 +145,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg",
                     ingredients = listOf("2-3 oz White rum", "2 tbsp Fresh lime juice", "2-4 mint sprigs", "2 tsp Sugar"),
                     instructions = "Muddle mint leaves with sugar and lime juice...",
-                    category = "Cocktail"
+                    category = "Cocktail",
                 ),
                 Cocktail(
                     id = "3",
@@ -149,7 +154,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/71t8581504353095.jpg",
                     ingredients = listOf("1 2/3 oz Gin", "1/3 oz Dry Vermouth", "1 Olive"),
                     instructions = "Stir all ingredients with ice...",
-                    category = "Cocktail"
+                    category = "Cocktail",
                 ),
                 Cocktail(
                     id = "4",
@@ -158,7 +163,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/4qxyty1434360738.jpg",
                     ingredients = listOf("2 oz Rye whiskey", "1 oz Sweet vermouth", "2 dashes Angostura bitters"),
                     instructions = "Stir all ingredients with ice...",
-                    category = "Cocktail"
+                    category = "Cocktail",
                 ),
                 Cocktail(
                     id = "5",
@@ -167,7 +172,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
                     ingredients = listOf("2 oz Vodka", "1/2 oz Lime juice", "3 oz Ginger beer", "Lime wedge"),
                     instructions = "Combine vodka and lime juice in a copper mug...",
-                    category = "Cocktail"
+                    category = "Cocktail",
                 ),
                 Cocktail(
                     id = "6",
@@ -176,8 +181,8 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg",
                     ingredients = listOf("1 1/2 oz White rum", "1/2 oz Dark rum", "1/2 oz Orange curaçao", "1/2 oz Orgeat syrup"),
                     instructions = "Shake all ingredients with ice...",
-                    category = "Cocktail"
-                )
+                    category = "Cocktail",
+                ),
             )
         }
     }
@@ -190,7 +195,7 @@ class CocktailRepositoryImpl : CocktailRepository {
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
-            
+
             for (i in 0 until drinksArray.length()) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
@@ -200,7 +205,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                 val alcoholic = item?.optString("strAlcoholic").orEmpty()
                 val glass = item?.optString("strGlass").orEmpty()
                 val tags = item?.optString("strTags").orEmpty()
-                
+
                 if (id.isNotEmpty() && name.isNotEmpty()) {
                     // Extract ingredients (strIngredient1 to strIngredient15)
                     val ingredients = mutableListOf<String>()
@@ -210,7 +215,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                             ingredients.add(ingredient)
                         }
                     }
-                    
+
                     // Extract measures (strMeasure1 to strMeasure15)
                     val measures = mutableListOf<String>()
                     for (j in 1..15) {
@@ -219,32 +224,36 @@ class CocktailRepositoryImpl : CocktailRepository {
                             measures.add(measure)
                         }
                     }
-                    
+
                     // Combine ingredients with measures
-                    val ingredientsWithMeasures = if (ingredients.size == measures.size) {
-                        ingredients.mapIndexed { index, ingredient ->
-                            "${measures[index]} $ingredient".trim()
+                    val ingredientsWithMeasures =
+                        if (ingredients.size == measures.size) {
+                            ingredients.mapIndexed { index, ingredient ->
+                                "${measures[index]} $ingredient".trim()
+                            }
+                        } else {
+                            ingredients
                         }
-                    } else {
-                        ingredients
-                    }
-                    
-                    val description = buildString {
-                        append("Category: ${category.ifEmpty { categoryId }}")
-                        if (alcoholic.isNotEmpty()) append(" • Type: $alcoholic")
-                        if (glass.isNotEmpty()) append(" • Glass: $glass")
-                        if (tags.isNotEmpty()) append(" • Tags: $tags")
-                    }
-                    
-                    result.add(Cocktail(
-                        id = id,
-                        name = name,
-                        description = description,
-                        imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                        ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
-                        instructions = "Instructions not available",
-                        category = category.ifEmpty { categoryId }
-                    ))
+
+                    val description =
+                        buildString {
+                            append("Category: ${category.ifEmpty { categoryId }}")
+                            if (alcoholic.isNotEmpty()) append(" • Type: $alcoholic")
+                            if (glass.isNotEmpty()) append(" • Glass: $glass")
+                            if (tags.isNotEmpty()) append(" • Tags: $tags")
+                        }
+
+                    result.add(
+                        Cocktail(
+                            id = id,
+                            name = name,
+                            description = description,
+                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
+                            instructions = "Instructions not available",
+                            category = category.ifEmpty { categoryId },
+                        ),
+                    )
                 }
             }
             return result
@@ -254,12 +263,12 @@ class CocktailRepositoryImpl : CocktailRepository {
                 Cocktail(
                     id = "1",
                     name = "Sample Cocktail",
-                    description = "A delicious sample cocktail from ${categoryId}",
+                    description = "A delicious sample cocktail from $categoryId",
                     imageUrl = "https://example.com/sample.jpg",
                     ingredients = listOf("Sample ingredient 1", "Sample ingredient 2"),
                     instructions = "Sample instructions",
-                    category = categoryId
-                )
+                    category = categoryId,
+                ),
             )
         }
     }
@@ -277,48 +286,50 @@ class CocktailRepositoryImpl : CocktailRepository {
             val alcoholic = item.optString("strAlcoholic").orEmpty()
             val glass = item.optString("strGlass").orEmpty()
             val tags = item.optString("strTags").orEmpty()
-            
+
             if (name.isEmpty()) return null
-            
+
             // Extract ingredients (strIngredient1 to strIngredient15)
             val ingredients = mutableListOf<String>()
             val measures = mutableListOf<String>()
-            
+
             for (i in 1..15) {
                 val ingredient = item.optString("strIngredient$i").orEmpty()
                 val measure = item.optString("strMeasure$i").orEmpty()
-                
+
                 if (ingredient.isNotEmpty()) {
                     ingredients.add(ingredient)
                     measures.add(measure)
                 }
             }
-            
+
             // Combine ingredients with measures
-            val ingredientsWithMeasures = if (ingredients.size == measures.size) {
-                ingredients.mapIndexed { index, ingredient ->
-                    "${measures[index]} $ingredient".trim()
+            val ingredientsWithMeasures =
+                if (ingredients.size == measures.size) {
+                    ingredients.mapIndexed { index, ingredient ->
+                        "${measures[index]} $ingredient".trim()
+                    }
+                } else {
+                    ingredients
                 }
-            } else {
-                ingredients
-            }
-            
-            val description = buildString {
-                if (category.isNotEmpty()) append("Category: $category")
-                if (alcoholic.isNotEmpty()) {
-                    if (isNotEmpty()) append(" • ")
-                    append("Type: $alcoholic")
+
+            val description =
+                buildString {
+                    if (category.isNotEmpty()) append("Category: $category")
+                    if (alcoholic.isNotEmpty()) {
+                        if (isNotEmpty()) append(" • ")
+                        append("Type: $alcoholic")
+                    }
+                    if (glass.isNotEmpty()) {
+                        if (isNotEmpty()) append(" • ")
+                        append("Glass: $glass")
+                    }
+                    if (tags.isNotEmpty()) {
+                        if (isNotEmpty()) append(" • ")
+                        append("Tags: $tags")
+                    }
                 }
-                if (glass.isNotEmpty()) {
-                    if (isNotEmpty()) append(" • ")
-                    append("Glass: $glass")
-                }
-                if (tags.isNotEmpty()) {
-                    if (isNotEmpty()) append(" • ")
-                    append("Tags: $tags")
-                }
-            }
-            
+
             return Cocktail(
                 id = id,
                 name = name,
@@ -326,7 +337,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                 imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
                 ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
                 instructions = instructions.ifEmpty { "Instructions not available" },
-                category = category.ifEmpty { "Unknown" }
+                category = category.ifEmpty { "Unknown" },
             )
         } catch (e: Exception) {
             return null
@@ -339,17 +350,17 @@ class CocktailRepositoryImpl : CocktailRepository {
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
-            
+
             // Limit to first 20 cocktails to avoid too many API calls
             val limit = minOf(20, drinksArray.length())
-            
+
             for (i in 0 until limit) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
                 val thumb = item?.optString("strDrinkThumb").orEmpty()
                 val category = item?.optString("strCategory").orEmpty()
-                
+
                 if (id.isNotEmpty() && name.isNotEmpty()) {
                     // Get detailed cocktail information by ID
                     val detailedCocktail = getCocktailById(id)
@@ -357,20 +368,23 @@ class CocktailRepositoryImpl : CocktailRepository {
                         result.add(detailedCocktail)
                     } else {
                         // Fallback if detailed info is not available
-                        val description = buildString {
-                            append("Search result for $query")
-                            if (category.isNotEmpty()) append(" • Category: $category")
-                        }
-                        
-                        result.add(Cocktail(
-                            id = id,
-                            name = name,
-                            description = description,
-                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                            ingredients = listOf("Ingredients not available"),
-                            instructions = "Instructions not available",
-                            category = category.ifEmpty { "Unknown" }
-                        ))
+                        val description =
+                            buildString {
+                                append("Search result for $query")
+                                if (category.isNotEmpty()) append(" • Category: $category")
+                            }
+
+                        result.add(
+                            Cocktail(
+                                id = id,
+                                name = name,
+                                description = description,
+                                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                                ingredients = listOf("Ingredients not available"),
+                                instructions = "Instructions not available",
+                                category = category.ifEmpty { "Unknown" },
+                            ),
+                        )
                     }
                 }
             }
@@ -387,17 +401,17 @@ class CocktailRepositoryImpl : CocktailRepository {
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
-            
+
             // Limit to first 20 cocktails to avoid too many API calls
             val limit = minOf(20, drinksArray.length())
-            
+
             for (i in 0 until limit) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
                 val thumb = item?.optString("strDrinkThumb").orEmpty()
                 val category = item?.optString("strCategory").orEmpty()
-                
+
                 if (id.isNotEmpty() && name.isNotEmpty()) {
                     // Get detailed cocktail information by ID
                     val detailedCocktail = getCocktailById(id)
@@ -405,19 +419,22 @@ class CocktailRepositoryImpl : CocktailRepository {
                         result.add(detailedCocktail)
                     } else {
                         // Fallback if detailed info is not available
-                        val description = buildString {
-                            if (category.isNotEmpty()) append("Category: $category")
-                        }
-                        
-                        result.add(Cocktail(
-                            id = id,
-                            name = name,
-                            description = description.ifEmpty { "Delicious cocktail" },
-                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                            ingredients = listOf("Ingredients not available"),
-                            instructions = "Instructions not available",
-                            category = category.ifEmpty { "Unknown" }
-                        ))
+                        val description =
+                            buildString {
+                                if (category.isNotEmpty()) append("Category: $category")
+                            }
+
+                        result.add(
+                            Cocktail(
+                                id = id,
+                                name = name,
+                                description = description.ifEmpty { "Delicious cocktail" },
+                                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                                ingredients = listOf("Ingredients not available"),
+                                instructions = "Instructions not available",
+                                category = category.ifEmpty { "Unknown" },
+                            ),
+                        )
                     }
                 }
             }
@@ -431,10 +448,10 @@ class CocktailRepositoryImpl : CocktailRepository {
         try {
             val url = baseUrl + "search.php?f=" + letter.uppercase().first()
             Log.d(TAG, "Searching cocktails with URL: $url")
-            
+
             val json = fetchJson(url)
             Log.d(TAG, "Received JSON: ${json.take(200)}...")
-            
+
             val jsonObject = JSONObject(json)
             val drinksArray = jsonObject.optJSONArray("drinks")
 
@@ -445,10 +462,10 @@ class CocktailRepositoryImpl : CocktailRepository {
 
             Log.d(TAG, "Found ${drinksArray.length()} cocktails")
             val result = mutableListOf<Cocktail>()
-            
+
             // Limit to first 20 cocktails to avoid too many API calls
             val limit = minOf(20, drinksArray.length())
-            
+
             for (i in 0 until limit) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
@@ -458,61 +475,65 @@ class CocktailRepositoryImpl : CocktailRepository {
                 val alcoholic = item?.optString("strAlcoholic").orEmpty()
                 val glass = item?.optString("strGlass").orEmpty()
                 val instructions = item?.optString("strInstructions").orEmpty()
-                
+
                 println("DEBUG: Processing cocktail $i: $name (ID: $id)")
-                
+
                 if (id.isNotEmpty() && name.isNotEmpty()) {
                     // Extract ingredients and measures directly from the response
                     val ingredients = mutableListOf<String>()
                     val measures = mutableListOf<String>()
-                    
+
                     for (j in 1..15) {
                         val ingredient = item.optString("strIngredient$j").orEmpty()
                         val measure = item.optString("strMeasure$j").orEmpty()
-                        
+
                         if (ingredient.isNotEmpty()) {
                             ingredients.add(ingredient)
                             measures.add(measure)
                         }
                     }
-                    
+
                     // Combine ingredients with measures
-                    val ingredientsWithMeasures = if (ingredients.size == measures.size) {
-                        ingredients.mapIndexed { index, ingredient ->
-                            "${measures[index]} $ingredient".trim()
+                    val ingredientsWithMeasures =
+                        if (ingredients.size == measures.size) {
+                            ingredients.mapIndexed { index, ingredient ->
+                                "${measures[index]} $ingredient".trim()
+                            }
+                        } else {
+                            ingredients
                         }
-                    } else {
-                        ingredients
-                    }
-                    
-                    val description = buildString {
-                        append("Cocktails starting with ${letter.uppercase()}")
-                        if (category.isNotEmpty()) append(" • Category: $category")
-                        if (alcoholic.isNotEmpty()) append(" • Type: $alcoholic")
-                        if (glass.isNotEmpty()) append(" • Glass: $glass")
-                    }
-                    
-                    result.add(Cocktail(
-                        id = id,
-                        name = name,
-                        description = description,
-                        imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                        ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
-                        instructions = instructions.ifEmpty { "Instructions not available" },
-                        category = category.ifEmpty { "Unknown" }
-                    ))
+
+                    val description =
+                        buildString {
+                            append("Cocktails starting with ${letter.uppercase()}")
+                            if (category.isNotEmpty()) append(" • Category: $category")
+                            if (alcoholic.isNotEmpty()) append(" • Type: $alcoholic")
+                            if (glass.isNotEmpty()) append(" • Glass: $glass")
+                        }
+
+                    result.add(
+                        Cocktail(
+                            id = id,
+                            name = name,
+                            description = description,
+                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
+                            instructions = instructions.ifEmpty { "Instructions not available" },
+                            category = category.ifEmpty { "Unknown" },
+                        ),
+                    )
                     println("DEBUG: Added cocktail: $name with ${ingredientsWithMeasures.size} ingredients")
                 }
             }
-            
+
             println("DEBUG: Returning ${result.size} cocktails")
-            
+
             // If no results from API, return fallback data
             if (result.isEmpty()) {
                 println("DEBUG: No results from API, returning fallback data")
                 return getFallbackCocktailsForLetter(letter)
             }
-            
+
             return result
         } catch (e: Exception) {
             println("DEBUG: Error in searchCocktailsByFirstLetter: ${e.message}")
@@ -528,17 +549,17 @@ class CocktailRepositoryImpl : CocktailRepository {
             val filterJson = fetchJson(filterUrl)
             val drinksArray = JSONObject(filterJson).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
-            
+
             // Limit to first 20 cocktails to avoid too many API calls
             val limit = minOf(20, drinksArray.length())
-            
+
             for (i in 0 until limit) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
                 val thumb = item?.optString("strDrinkThumb").orEmpty()
                 val category = item?.optString("strCategory").orEmpty()
-                
+
                 if (id.isNotEmpty() && name.isNotEmpty()) {
                     // Get detailed cocktail information by ID
                     val detailedCocktail = getCocktailById(id)
@@ -546,15 +567,17 @@ class CocktailRepositoryImpl : CocktailRepository {
                         result.add(detailedCocktail)
                     } else {
                         // Fallback if detailed info is not available
-                        result.add(Cocktail(
-                            id = id,
-                            name = name,
-                            description = "Cocktails containing $ingredient",
-                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                            ingredients = listOf("Ingredients not available"),
-                            instructions = "Instructions not available",
-                            category = category.ifEmpty { "Unknown" }
-                        ))
+                        result.add(
+                            Cocktail(
+                                id = id,
+                                name = name,
+                                description = "Cocktails containing $ingredient",
+                                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                                ingredients = listOf("Ingredients not available"),
+                                instructions = "Instructions not available",
+                                category = category.ifEmpty { "Unknown" },
+                            ),
+                        )
                     }
                 }
             }
@@ -571,17 +594,17 @@ class CocktailRepositoryImpl : CocktailRepository {
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
-            
+
             // Limit to first 20 cocktails to avoid too many API calls
             val limit = minOf(20, drinksArray.length())
-            
+
             for (i in 0 until limit) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
                 val thumb = item?.optString("strDrinkThumb").orEmpty()
                 val category = item?.optString("strCategory").orEmpty()
-                
+
                 if (id.isNotEmpty() && name.isNotEmpty()) {
                     // Get detailed cocktail information by ID
                     val detailedCocktail = getCocktailById(id)
@@ -589,30 +612,33 @@ class CocktailRepositoryImpl : CocktailRepository {
                         result.add(detailedCocktail)
                     } else {
                         // Fallback if detailed info is not available
-                        val description = buildString {
-                            append("${if (isAlcoholic) "Alcoholic" else "Non-alcoholic"} cocktail")
-                            if (category.isNotEmpty()) append(" • Category: $category")
-                        }
-                        
-                        result.add(Cocktail(
-                            id = id,
-                            name = name,
-                            description = description,
-                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                            ingredients = listOf("Ingredients not available"),
-                            instructions = "Instructions not available",
-                            category = category.ifEmpty { "Unknown" }
-                        ))
+                        val description =
+                            buildString {
+                                append("${if (isAlcoholic) "Alcoholic" else "Non-alcoholic"} cocktail")
+                                if (category.isNotEmpty()) append(" • Category: $category")
+                            }
+
+                        result.add(
+                            Cocktail(
+                                id = id,
+                                name = name,
+                                description = description,
+                                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                                ingredients = listOf("Ingredients not available"),
+                                instructions = "Instructions not available",
+                                category = category.ifEmpty { "Unknown" },
+                            ),
+                        )
                     }
                 }
             }
-            
+
             // If no results from API, return fallback data
             if (result.isEmpty()) {
                 println("DEBUG: No alcoholic filter results from API, returning fallback data")
                 return getFallbackAlcoholicCocktails(isAlcoholic)
             }
-            
+
             return result
         } catch (e: Exception) {
             println("DEBUG: Error in filterCocktailsByAlcoholic: ${e.message}")
@@ -629,7 +655,7 @@ class CocktailRepositoryImpl : CocktailRepository {
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
-            
+
             for (i in 0 until drinksArray.length()) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
@@ -639,7 +665,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                 val alcoholic = item?.optString("strAlcoholic").orEmpty()
                 val glass = item?.optString("strGlass").orEmpty()
                 val tags = item?.optString("strTags").orEmpty()
-                
+
                 if (id.isNotEmpty() && name.isNotEmpty()) {
                     // Extract ingredients (strIngredient1 to strIngredient15)
                     val ingredients = mutableListOf<String>()
@@ -649,7 +675,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                             ingredients.add(ingredient)
                         }
                     }
-                    
+
                     // Extract measures (strMeasure1 to strMeasure15)
                     val measures = mutableListOf<String>()
                     for (j in 1..15) {
@@ -658,32 +684,36 @@ class CocktailRepositoryImpl : CocktailRepository {
                             measures.add(measure)
                         }
                     }
-                    
+
                     // Combine ingredients with measures
-                    val ingredientsWithMeasures = if (ingredients.size == measures.size) {
-                        ingredients.mapIndexed { index, ingredient ->
-                            "${measures[index]} $ingredient".trim()
+                    val ingredientsWithMeasures =
+                        if (ingredients.size == measures.size) {
+                            ingredients.mapIndexed { index, ingredient ->
+                                "${measures[index]} $ingredient".trim()
+                            }
+                        } else {
+                            ingredients
                         }
-                    } else {
-                        ingredients
-                    }
-                    
-                    val description = buildString {
-                        append("Category: ${categoryName.ifEmpty { category }}")
-                        if (alcoholic.isNotEmpty()) append(" • Type: $alcoholic")
-                        if (glass.isNotEmpty()) append(" • Glass: $glass")
-                        if (tags.isNotEmpty()) append(" • Tags: $tags")
-                    }
-                    
-                    result.add(Cocktail(
-                        id = id,
-                        name = name,
-                        description = description,
-                        imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                        ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
-                        instructions = "Instructions not available",
-                        category = categoryName.ifEmpty { category }
-                    ))
+
+                    val description =
+                        buildString {
+                            append("Category: ${categoryName.ifEmpty { category }}")
+                            if (alcoholic.isNotEmpty()) append(" • Type: $alcoholic")
+                            if (glass.isNotEmpty()) append(" • Glass: $glass")
+                            if (tags.isNotEmpty()) append(" • Tags: $tags")
+                        }
+
+                    result.add(
+                        Cocktail(
+                            id = id,
+                            name = name,
+                            description = description,
+                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
+                            instructions = "Instructions not available",
+                            category = categoryName.ifEmpty { category },
+                        ),
+                    )
                 }
             }
             return result
@@ -746,16 +776,28 @@ class CocktailRepositoryImpl : CocktailRepository {
             return result.sorted()
         } catch (e: Exception) {
             return listOf(
-                "Vodka", "Gin", "Rum", "Tequila", "Whiskey", "Brandy", "Triple sec",
-                "Lime juice", "Lemon juice", "Orange juice", "Cranberry juice",
-                "Sugar", "Grenadine", "Bitters", "Champagne", "Coffee", "Milk"
+                "Vodka",
+                "Gin",
+                "Rum",
+                "Tequila",
+                "Whiskey",
+                "Brandy",
+                "Triple sec",
+                "Lime juice",
+                "Lemon juice",
+                "Orange juice",
+                "Cranberry juice",
+                "Sugar",
+                "Grenadine",
+                "Bitters",
+                "Champagne",
+                "Coffee",
+                "Milk",
             )
         }
     }
 
-    override fun toggleFavorite(cocktailId: String): Boolean {
-        return true
-    }
+    override fun toggleFavorite(cocktailId: String): Boolean = true
 
     override fun getFavoriteCocktails(): List<Cocktail> {
         try {
@@ -764,10 +806,10 @@ class CocktailRepositoryImpl : CocktailRepository {
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
-            
+
             // Take first 4 cocktails as favorites
             val limit = minOf(4, drinksArray.length())
-            
+
             for (i in 0 until limit) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
@@ -777,48 +819,52 @@ class CocktailRepositoryImpl : CocktailRepository {
                 val alcoholic = item?.optString("strAlcoholic").orEmpty()
                 val glass = item?.optString("strGlass").orEmpty()
                 val tags = item?.optString("strTags").orEmpty()
-                
+
                 if (id.isNotEmpty() && name.isNotEmpty()) {
                     // Extract ingredients (strIngredient1 to strIngredient15)
                     val ingredients = mutableListOf<String>()
                     val measures = mutableListOf<String>()
-                    
+
                     for (j in 1..15) {
                         val ingredient = item.optString("strIngredient$j").orEmpty()
                         val measure = item.optString("strMeasure$j").orEmpty()
-                        
+
                         if (ingredient.isNotEmpty()) {
                             ingredients.add(ingredient)
                             measures.add(measure)
                         }
                     }
-                    
+
                     // Combine ingredients with measures
-                    val ingredientsWithMeasures = if (ingredients.size == measures.size) {
-                        ingredients.mapIndexed { index, ingredient ->
-                            "${measures[index]} $ingredient".trim()
+                    val ingredientsWithMeasures =
+                        if (ingredients.size == measures.size) {
+                            ingredients.mapIndexed { index, ingredient ->
+                                "${measures[index]} $ingredient".trim()
+                            }
+                        } else {
+                            ingredients
                         }
-                    } else {
-                        ingredients
-                    }
-                    
-                    val description = buildString {
-                        append("Favorite cocktail")
-                        if (category.isNotEmpty()) append(" • Category: $category")
-                        if (alcoholic.isNotEmpty()) append(" • Type: $alcoholic")
-                        if (glass.isNotEmpty()) append(" • Glass: $glass")
-                        if (tags.isNotEmpty()) append(" • Tags: $tags")
-                    }
-                    
-                    result.add(Cocktail(
-                        id = id,
-                        name = name,
-                        description = description,
-                        imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                        ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
-                        instructions = "Instructions not available",
-                        category = category.ifEmpty { "Unknown" }
-                    ))
+
+                    val description =
+                        buildString {
+                            append("Favorite cocktail")
+                            if (category.isNotEmpty()) append(" • Category: $category")
+                            if (alcoholic.isNotEmpty()) append(" • Type: $alcoholic")
+                            if (glass.isNotEmpty()) append(" • Glass: $glass")
+                            if (tags.isNotEmpty()) append(" • Tags: $tags")
+                        }
+
+                    result.add(
+                        Cocktail(
+                            id = id,
+                            name = name,
+                            description = description,
+                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
+                            instructions = "Instructions not available",
+                            category = category.ifEmpty { "Unknown" },
+                        ),
+                    )
                 }
             }
             return result
@@ -832,7 +878,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/4qxyty1434360738.jpg",
                     ingredients = listOf("1 oz Gin", "1/2 oz Lemon juice", "1/2 oz Sugar syrup", "4 oz Champagne"),
                     instructions = "Combine gin, sugar, and lemon juice in a cocktail shaker...",
-                    category = "Cocktail"
+                    category = "Cocktail",
                 ),
                 Cocktail(
                     id = "2",
@@ -841,69 +887,74 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/7oyrj91504884412.jpg",
                     ingredients = listOf("1 1/2 oz Light rum", "1 oz Lime juice", "1/2 oz Triple sec", "1 tsp Sugar"),
                     instructions = "Pour all ingredients into an electric blender...",
-                    category = "Cocktail"
-                )
+                    category = "Cocktail",
+                ),
             )
         }
     }
 
     private fun getFallbackCocktailsForLetter(letter: String): List<Cocktail> {
-        val fallbackCocktails = mapOf(
-            "A" to listOf(
-                Cocktail(
-                    id = "11007",
-                    name = "Apple Martini",
-                    description = "Classic cocktail starting with A • Category: Cocktail • Type: Alcoholic • Glass: Cocktail glass",
-                    imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
-                    ingredients = listOf("1 1/2 oz Vodka", "1/2 oz Apple schnapps", "1 oz Apple juice", "1/2 oz Lemon juice"),
-                    instructions = "Shake all ingredients with ice and strain into a chilled cocktail glass.",
-                    category = "Cocktail"
-                ),
-                Cocktail(
-                    id = "11008",
-                    name = "Amaretto Sour",
-                    description = "Sweet and sour cocktail • Category: Cocktail • Type: Alcoholic • Glass: Old-fashioned glass",
-                    imageUrl = "https://www.thecocktaildb.com/images/media/drink/voxwvt1464176330.jpg",
-                    ingredients = listOf("1 1/2 oz Amaretto", "1 oz Lemon juice", "1/2 oz Simple syrup", "1 Egg white"),
-                    instructions = "Shake all ingredients with ice and strain into a chilled glass.",
-                    category = "Cocktail"
-                )
-            ),
-            "B" to listOf(
-                Cocktail(
-                    id = "11009",
-                    name = "Blue Lagoon",
-                    description = "Refreshing blue cocktail • Category: Cocktail • Type: Alcoholic • Glass: Highball glass",
-                    imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
-                    ingredients = listOf("1 oz Vodka", "1 oz Blue curacao", "4 oz Lemonade", "1 Maraschino cherry"),
-                    instructions = "Pour vodka and curacao over ice in a highball glass. Fill with lemonade and stir gently.",
-                    category = "Cocktail"
-                )
-            ),
-            "C" to listOf(
-                Cocktail(
-                    id = "11010",
-                    name = "Cosmopolitan",
-                    description = "Elegant vodka cocktail • Category: Cocktail • Type: Alcoholic • Glass: Cocktail glass",
-                    imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
-                    ingredients = listOf("1 1/2 oz Vodka", "1/2 oz Triple sec", "1/2 oz Cranberry juice", "1/2 oz Lime juice"),
-                    instructions = "Shake all ingredients with ice and strain into a chilled cocktail glass.",
-                    category = "Cocktail"
-                )
-            ),
-            "D" to listOf(
-                Cocktail(
-                    id = "11011",
-                    name = "Daiquiri",
-                    description = "Classic rum cocktail • Category: Cocktail • Type: Alcoholic • Glass: Cocktail glass",
-                    imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
-                    ingredients = listOf("2 oz White rum", "1 oz Lime juice", "1/2 oz Simple syrup"),
-                    instructions = "Shake all ingredients with ice and strain into a chilled cocktail glass.",
-                    category = "Cocktail"
-                )
+        val fallbackCocktails =
+            mapOf(
+                "A" to
+                    listOf(
+                        Cocktail(
+                            id = "11007",
+                            name = "Apple Martini",
+                            description = "Classic cocktail starting with A • Category: Cocktail • Type: Alcoholic • Glass: Cocktail glass",
+                            imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
+                            ingredients = listOf("1 1/2 oz Vodka", "1/2 oz Apple schnapps", "1 oz Apple juice", "1/2 oz Lemon juice"),
+                            instructions = "Shake all ingredients with ice and strain into a chilled cocktail glass.",
+                            category = "Cocktail",
+                        ),
+                        Cocktail(
+                            id = "11008",
+                            name = "Amaretto Sour",
+                            description = "Sweet and sour cocktail • Category: Cocktail • Type: Alcoholic • Glass: Old-fashioned glass",
+                            imageUrl = "https://www.thecocktaildb.com/images/media/drink/voxwvt1464176330.jpg",
+                            ingredients = listOf("1 1/2 oz Amaretto", "1 oz Lemon juice", "1/2 oz Simple syrup", "1 Egg white"),
+                            instructions = "Shake all ingredients with ice and strain into a chilled glass.",
+                            category = "Cocktail",
+                        ),
+                    ),
+                "B" to
+                    listOf(
+                        Cocktail(
+                            id = "11009",
+                            name = "Blue Lagoon",
+                            description = "Refreshing blue cocktail • Category: Cocktail • Type: Alcoholic • Glass: Highball glass",
+                            imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
+                            ingredients = listOf("1 oz Vodka", "1 oz Blue curacao", "4 oz Lemonade", "1 Maraschino cherry"),
+                            instructions = "Pour vodka and curacao over ice in a highball glass. Fill with lemonade and stir gently.",
+                            category = "Cocktail",
+                        ),
+                    ),
+                "C" to
+                    listOf(
+                        Cocktail(
+                            id = "11010",
+                            name = "Cosmopolitan",
+                            description = "Elegant vodka cocktail • Category: Cocktail • Type: Alcoholic • Glass: Cocktail glass",
+                            imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
+                            ingredients = listOf("1 1/2 oz Vodka", "1/2 oz Triple sec", "1/2 oz Cranberry juice", "1/2 oz Lime juice"),
+                            instructions = "Shake all ingredients with ice and strain into a chilled cocktail glass.",
+                            category = "Cocktail",
+                        ),
+                    ),
+                "D" to
+                    listOf(
+                        Cocktail(
+                            id = "11011",
+                            name = "Daiquiri",
+                            description = "Classic rum cocktail • Category: Cocktail • Type: Alcoholic • Glass: Cocktail glass",
+                            imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
+                            ingredients = listOf("2 oz White rum", "1 oz Lime juice", "1/2 oz Simple syrup"),
+                            instructions = "Shake all ingredients with ice and strain into a chilled cocktail glass.",
+                            category = "Cocktail",
+                        ),
+                    ),
             )
-        )
-        
+
         return fallbackCocktails[letter.uppercase()] ?: listOf(
             Cocktail(
                 id = "99999",
@@ -912,13 +963,13 @@ class CocktailRepositoryImpl : CocktailRepository {
                 imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
                 ingredients = listOf("1 oz Sample spirit", "1/2 oz Sample mixer", "1/2 oz Sample juice"),
                 instructions = "Mix all ingredients with ice and serve.",
-                category = "Cocktail"
-            )
+                category = "Cocktail",
+            ),
         )
     }
 
-    private fun getFallbackAlcoholicCocktails(isAlcoholic: Boolean): List<Cocktail> {
-        return if (isAlcoholic) {
+    private fun getFallbackAlcoholicCocktails(isAlcoholic: Boolean): List<Cocktail> =
+        if (isAlcoholic) {
             listOf(
                 Cocktail(
                     id = "11012",
@@ -927,7 +978,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
                     ingredients = listOf("1 1/2 oz Tequila", "1/2 oz Triple sec", "1 oz Lime juice", "Salt"),
                     instructions = "Rub the rim of the glass with the lime slice to make the salt stick to it. Shake the other ingredients with ice, then carefully pour into the glass.",
-                    category = "Ordinary Drink"
+                    category = "Ordinary Drink",
                 ),
                 Cocktail(
                     id = "11013",
@@ -936,7 +987,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg",
                     ingredients = listOf("2-3 oz White rum", "2 tbsp Fresh lime juice", "2-4 mint sprigs", "2 tsp Sugar"),
                     instructions = "Muddle mint leaves with sugar and lime juice. Add rum and fill with ice. Top with soda water and garnish with mint sprig.",
-                    category = "Cocktail"
+                    category = "Cocktail",
                 ),
                 Cocktail(
                     id = "11014",
@@ -945,8 +996,8 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/71t8581504353095.jpg",
                     ingredients = listOf("1 2/3 oz Gin", "1/3 oz Dry Vermouth", "1 Olive"),
                     instructions = "Stir all ingredients with ice and strain into a chilled cocktail glass. Garnish with olive.",
-                    category = "Cocktail"
-                )
+                    category = "Cocktail",
+                ),
             )
         } else {
             listOf(
@@ -957,7 +1008,7 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
                     ingredients = listOf("2 tbsp Fresh lime juice", "2-4 mint sprigs", "2 tsp Sugar", "Soda water"),
                     instructions = "Muddle mint leaves with sugar and lime juice. Fill with ice and top with soda water. Garnish with mint sprig.",
-                    category = "Cocktail"
+                    category = "Cocktail",
                 ),
                 Cocktail(
                     id = "11016",
@@ -966,30 +1017,31 @@ class CocktailRepositoryImpl : CocktailRepository {
                     imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
                     ingredients = listOf("1 oz Grenadine", "6 oz Ginger ale", "1 Maraschino cherry"),
                     instructions = "Fill a highball glass with ice. Add grenadine and ginger ale. Garnish with cherry.",
-                    category = "Cocktail"
-                )
+                    category = "Cocktail",
+                ),
             )
         }
-    }
 
     private fun fetchJson(urlString: String): String {
         val url = URL(urlString)
-        val connection = (url.openConnection() as HttpURLConnection).apply {
-            requestMethod = "GET"
-            connectTimeout = 15000
-            readTimeout = 15000
-            doInput = true
-            // Add headers to avoid some API restrictions
-            setRequestProperty("User-Agent", "CocktailDB-Android-App/1.0")
-            setRequestProperty("Accept", "application/json")
-        }
+        val connection =
+            (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 15000
+                readTimeout = 15000
+                doInput = true
+                // Add headers to avoid some API restrictions
+                setRequestProperty("User-Agent", "CocktailDB-Android-App/1.0")
+                setRequestProperty("Accept", "application/json")
+            }
         try {
             val responseCode = connection.responseCode
-            val stream = if (responseCode in 200..299) {
-                connection.inputStream
-            } else {
-                connection.errorStream ?: connection.inputStream
-            }
+            val stream =
+                if (responseCode in 200..299) {
+                    connection.inputStream
+                } else {
+                    connection.errorStream ?: connection.inputStream
+                }
             val reader = BufferedReader(InputStreamReader(stream))
             val builder = StringBuilder()
             var line: String?
@@ -998,7 +1050,7 @@ class CocktailRepositoryImpl : CocktailRepository {
             }
             reader.close()
             if (responseCode !in 200..299) {
-                throw RuntimeException("HTTP $responseCode: ${builder.toString()}")
+                throw RuntimeException("HTTP $responseCode: $builder")
             }
             return builder.toString()
         } catch (e: Exception) {

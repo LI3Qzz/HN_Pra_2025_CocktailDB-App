@@ -1,8 +1,8 @@
 [versions]
 agp = "8.11.1"
 firebaseBom = "34.1.0"
-kotlin = "2.0.21"
-coreKtx = "1.16.0"
+kotlin = "2.2.0"
+coreKtx = "1.17.0"
 junit = "4.14-SNAPSHOT"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
@@ -10,28 +10,16 @@ appcompat = "1.7.1"
 ktlint = "1.3.1"
 material = "1.12.0"
 constraintlayout = "2.2.1"
-lifecycleLivedataKtx = "2.9.2"
-lifecycleViewmodelKtx = "2.9.2"
-navigationFragmentKtx = "2.9.2"
-navigationUiKtx = "2.9.2"
-firebaseAuthKtx = "24.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-appcompat = { group = "com.google.android.material", name = "appcompat", version.ref = "appcompat" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 ktlint = { module = "com.pinterest:ktlint", version.ref = "ktlint" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
-androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
-androidx-navigation-fragment-ktx = { group = "androidx.lifecycle", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
-androidx-navigation-ui-ktx = { group = "androidx.lifecycle", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
-firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

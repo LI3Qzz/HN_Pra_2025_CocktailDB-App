@@ -1,13 +1,9 @@
 package com.sun.cocktaildb.screen.authenticate.login
 
+import com.sun.cocktaildb.utils.base.BaseView
+
 interface LoginContract {
-    interface View {
-        fun showLoading()
-
-        fun hideLoading()
-
-        fun showError(message: String)
-
+    interface View : BaseView {
         fun showSuccess()
 
         fun navigateToMain()
