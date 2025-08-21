@@ -9,22 +9,27 @@
     android:padding="@dimen/card_margin">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="@dimen/category_item_size"
-        android:layout_height="@dimen/category_item_size"
+        android:layout_width="@dimen/dp_85"
+        android:layout_height="@dimen/dp_85"
         app:cardCornerRadius="@dimen/category_corner_radius"
         app:cardElevation="@dimen/card_elevation"
         app:cardBackgroundColor="@color/white"
         app:strokeWidth="@dimen/category_stroke_width"
-        app:strokeColor="@color/black"
-        app:cardUseCompatPadding="true">
+        android:clipToPadding="true"
+        android:padding="4dp"
+        app:strokeColor="@color/black">
 
-        <ImageView
-            android:id="@+id/iv_category"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@drawable/cocktail_logo"
-            tools:src="@drawable/placeholder" />
+            android:layout_height="match_parent">
+            <ImageView
+                android:id="@+id/iv_category"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/cocktail_logo"
+                tools:src="@drawable/placeholder" />
+        </FrameLayout>
 
     </androidx.cardview.widget.CardView>
 

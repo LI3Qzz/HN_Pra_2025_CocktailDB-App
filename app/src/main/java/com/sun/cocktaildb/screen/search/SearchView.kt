@@ -13,4 +13,12 @@ interface SearchView : BaseView {
     fun showHistory(historyItems: List<String>)
     fun hideHistory()
     fun removeFromHistory(historyItem: String)
+    
+    // New methods for enhanced search functionality
+    fun showAlcoholicFilters(filters: List<String>)
+    fun showGlassTypes(glassTypes: List<String>)
+    fun showSearchTypeTabs()
+    fun updateSearchTypeTab(selectedType: SearchType)
+    fun showQuickFilters()
+    fun showFilterOptions()
 }

@@ -2,10 +2,13 @@ package com.sun.cocktaildb.screen.splash
 
 import android.content.Intent
 import com.sun.cocktaildb.databinding.ActivitySplashscreenBinding
+import com.sun.cocktaildb.screen.authenticate.login.LoginActivity
 import com.sun.cocktaildb.screen.home.HomeScreenActivity
 import com.sun.cocktaildb.utils.base.BaseActivity
 
-class SplashScreenActivity : BaseActivity(), SplashView {
+class SplashScreenActivity :
+    BaseActivity(),
+    SplashView {
     private lateinit var binding: ActivitySplashscreenBinding
     private lateinit var presenter: SplashPresenter
 
@@ -45,7 +48,7 @@ class SplashScreenActivity : BaseActivity(), SplashView {
     }
 
     override fun navigateToHome() {
-        val intent = Intent(this, HomeScreenActivity::class.java)
+        val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
         finish()
     }

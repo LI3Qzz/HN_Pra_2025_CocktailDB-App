@@ -1,94 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/white"
-    tools:context=".screen.home.HomeScreenActivity">
+    android:layout_height="match_parent">
 
-    <!-- Header Section with Orange Background and Yellow Wave -->
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- Header Section -->
+    <LinearLayout
         android:id="@+id/header_section"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_200"
+        android:layout_height="@dimen/dp_150"
         android:background="@drawable/header_background_img"
+        android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Title -->
         <TextView
             android:id="@+id/tv_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cocktail"
-            android:textColor="@color/black"
-            android:textSize="@dimen/sp_32"
-            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/dp_16"
             android:fontFamily="@font/aclonica"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:text="@string/cocktaildb"
+            android:textColor="@color/white"
+            android:textSize="@dimen/sp_24"
+            android:textStyle="bold" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 
-    <!-- Main Content -->
-    <androidx.core.widget.NestedScrollView
+    <!-- Fragment Container -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:fillViewport="true"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
-        app:layout_constraintTop_toBottomOf="@id/header_section">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="@dimen/activity_horizontal_margin">
-
-            <!-- Categories Section -->
-            <TextView
-                android:id="@+id/tv_categories_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Categories"
-                android:textColor="@color/black"
-                android:textSize="@dimen/text_size_large"
-                android:textStyle="bold"
-                android:layout_marginBottom="@dimen/activity_horizontal_margin" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_categories"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/item_category" />
-
-            <!-- Popular Section -->
-            <TextView
-                android:id="@+id/tv_popular_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Popular"
-                android:textColor="@color/black"
-                android:textSize="@dimen/text_size_large"
-                android:textStyle="bold"
-                android:layout_marginTop="@dimen/text_margin_bottom_large"
-                android:layout_marginBottom="@dimen/activity_horizontal_margin" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_popular"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                app:spanCount="2"
-                tools:listitem="@layout/item_popular_cocktail" />
-
-        </LinearLayout>
-
-    </androidx.core.widget.NestedScrollView>
+        app:layout_constraintTop_toBottomOf="@id/header_section" />
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView

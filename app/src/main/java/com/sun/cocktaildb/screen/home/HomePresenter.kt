@@ -35,11 +35,15 @@ class HomePresenter(
             try {
                 val categories = cocktailRepository.getCategories()
                 mainHandler.post {
-                    view?.showCategories(categories)
+                    if (categories.isNotEmpty()) {
+                        view?.showCategories(categories)
+                    } else {
+                        view?.showError("No categories found. Please check your internet connection.")
+                    }
                 }
             } catch (e: Exception) {
                 mainHandler.post {
-                    view?.showError(e.message ?: "Error loading categories")
+                    view?.showError("Error loading categories: ${e.message ?: "Unknown error"}")
                 }
             }
         }
@@ -54,12 +58,16 @@ class HomePresenter(
                     cocktail.copy(isFavorite = FavoriteManager.isFavorite(cocktail.id))
                 }
                 mainHandler.post {
-                    view?.showPopularCocktails(updatedCocktails)
+                    if (updatedCocktails.isNotEmpty()) {
+                        view?.showPopularCocktails(updatedCocktails)
+                    } else {
+                        view?.showError("No popular cocktails found. Please check your internet connection.")
+                    }
                     view?.hideLoading()
                 }
             } catch (e: Exception) {
                 mainHandler.post {
-                    view?.showError(e.message ?: "Error loading popular cocktails")
+                    view?.showError("Error loading popular cocktails: ${e.message ?: "Unknown error"}")
                     view?.hideLoading()
                 }
             }

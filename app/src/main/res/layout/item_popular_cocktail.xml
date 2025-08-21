@@ -30,8 +30,8 @@
             <!-- Favorite Icon -->
             <ImageView
                 android:id="@+id/iv_favorite"
-                android:layout_width="@dimen/favorite_icon_size"
-                android:layout_height="@dimen/favorite_icon_size"
+                android:layout_width="@dimen/dp_28"
+                android:layout_height="@dimen/dp_28"
                 android:layout_gravity="top|end"
                 android:layout_margin="@dimen/icon_margin"
                 android:background="@drawable/favorite_ripple"
@@ -54,7 +54,6 @@
                 android:id="@+id/tv_cocktail_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Long island"
                 android:textColor="@color/black"
                 android:textSize="@dimen/text_size_medium"
                 android:textStyle="bold"
@@ -65,7 +64,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/text_margin_top_small"
-                android:text="Here is the description for this cocktail."
                 android:textColor="@color/black"
                 android:textSize="@dimen/text_size_small"
                 tools:text="Cocktail description" />

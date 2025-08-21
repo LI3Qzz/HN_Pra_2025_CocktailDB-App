@@ -6,11 +6,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sun.cocktaildb.databinding.ItemSearchHistoryBinding
 
 class HistoryAdapter(
-    private val onHistoryClicked: (String) -> Unit,
-    private val onHistoryRemoved: (String) -> Unit
+    private val onHistoryItemClick: (String) -> Unit,
+    private val onHistoryItemRemove: (String) -> Unit
 ) : RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder>() {
 
-    private var historyItems: List<String> = emptyList()
+    private var historyItems = listOf<String>()
 
     fun updateHistory(newHistory: List<String>) {
         historyItems = newHistory
@@ -36,24 +36,18 @@ class HistoryAdapter(
         private val binding: ItemSearchHistoryBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        init {
+        fun bind(query: String) {
+            binding.tvHistoryText.text = query
+            
+            // Click to reuse search query
             binding.root.setOnClickListener {
-                val position = adapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    onHistoryClicked(historyItems[position])
-                }
+                onHistoryItemClick(query)
             }
-
+            
+            // Click to remove from history
             binding.btnRemoveHistory.setOnClickListener {
-                val position = adapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    onHistoryRemoved(historyItems[position])
-                }
+                onHistoryItemRemove(query)
             }
-        }
-
-        fun bind(historyItem: String) {
-            binding.tvHistoryText.text = historyItem
         }
     }
 }
