@@ -12,6 +12,7 @@ import com.sun.cocktaildb.screen.home.adapter.CategoryAdapter
 import com.sun.cocktaildb.screen.home.adapter.PopularCocktailAdapter
 import com.sun.cocktaildb.screen.categorydetail.CategoryDetailActivity
 import com.sun.cocktaildb.screen.search.SearchActivity
+import com.sun.cocktaildb.screen.favorite.FavoriteActivity
 import com.sun.cocktaildb.utils.base.BaseActivity
 import com.sun.cocktaildb.utils.FavoriteManager
 
@@ -147,8 +148,8 @@ class HomeScreenActivity : BaseActivity(), HomeView {
                 // Already on home screen
             }
             R.id.navigation_favorites -> {
-                Toast.makeText(this, "Favorites clicked", Toast.LENGTH_SHORT).show()
-                // Favorites navigation
+                val intent = FavoriteActivity.newIntent(this)
+                startActivity(intent)
             }
             R.id.navigation_search -> {
                 val intent = SearchActivity.newIntent(this)
