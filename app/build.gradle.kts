@@ -68,5 +68,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
+    implementation("com.google.firebase:firebase-core:21.1.1")
+    implementation("com.firebaseui:firebase-ui-firestore:9.0.0")
     testImplementation(kotlin("test"))
 }

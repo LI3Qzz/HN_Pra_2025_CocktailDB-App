@@ -1,12 +1,16 @@
 package com.sun.cocktaildb.data.repository.impl
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
+import com.sun.cocktaildb.data.model.User
 import com.sun.cocktaildb.data.repository.AuthRepository
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 class FirebaseAuthImplement(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
     private val executor: Executor = Executors.newSingleThreadExecutor(),
 ) : AuthRepository {
     override fun register(
@@ -19,7 +23,13 @@ class FirebaseAuthImplement(
                 .createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        callback(Result.success("Success"))
+                        // Create user profile in Firestore after successful registration
+                        val user = task.result?.user
+                        if (user != null) {
+                            createUserProfile(user, email, callback)
+                        } else {
+                            callback(Result.failure(Exception("User creation failed")))
+                        }
                     } else {
                         callback(Result.failure(task.exception ?: Exception("Unknown error")))
                     }
@@ -50,4 +60,41 @@ class FirebaseAuthImplement(
     }
 
     override fun currentUserId(): String? = auth.currentUser?.uid
+
+    /**
+     * Get current Firebase user object
+     */
+    fun getCurrentUser(): FirebaseUser? = auth.currentUser
+
+    /**
+     * Create user profile in Firestore after registration
+     * @param firebaseUser Firebase Auth user object
+     * @param email User's email address
+     * @param callback Result callback
+     */
+    private fun createUserProfile(
+        firebaseUser: FirebaseUser,
+        email: String,
+        callback: (Result<String>) -> Unit,
+    ) {
+        val user =
+            User(
+                userId = firebaseUser.uid,
+                email = email,
+                name = "", // Will be filled later by user
+                phoneNumber = "", // Will be filled later by user
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis(),
+            )
+
+        firestore
+            .collection("users")
+            .document(firebaseUser.uid)
+            .set(user)
+            .addOnSuccessListener {
+                callback(Result.success("Success"))
+            }.addOnFailureListener { exception ->
+                callback(Result.failure(exception))
+            }
+    }
 }

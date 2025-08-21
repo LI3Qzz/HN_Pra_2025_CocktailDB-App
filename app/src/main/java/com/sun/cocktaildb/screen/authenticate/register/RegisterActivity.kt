@@ -69,7 +69,7 @@ class RegisterActivity :
             binding.emailError.visibility = View.GONE
             binding.passwordError.visibility = View.GONE
             binding.passwordConfirmError.visibility = View.GONE
-            if (presenter.validateInputs(
+            if (validateInputs(
                     binding.etUsername.text.toString(),
                     binding.etPassword.text.toString(),
                     binding.etPasswordConfirm.text.toString(),
@@ -90,5 +90,31 @@ class RegisterActivity :
         binding.etPasswordConfirm.setOnClickListener {
             binding.passwordConfirmError.visibility = View.GONE
         }
+    }
+
+    private fun validateInputs(
+        email: String,
+        password: String,
+        confirmPassword: String,
+    ): Boolean {
+        if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            showEmailInvalid("Email is required")
+            showPasswordInvalid("Password is required")
+            showConfirmPasswordInvalid("Confirm password is required")
+            return false
+        }
+        if (!presenter.validateEmailPattern(email)) {
+            showEmailInvalid("Invalid email format")
+            return false
+        }
+        if (password.length < 6) {
+            showPasswordInvalid("Password must be at least 6 characters")
+            return false
+        }
+        if (password != confirmPassword) {
+            showConfirmPasswordInvalid("Passwords do not match")
+            return false
+        }
+        return true
     }
 }

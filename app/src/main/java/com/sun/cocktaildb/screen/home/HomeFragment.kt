@@ -22,7 +22,9 @@ import com.sun.cocktaildb.utils.dialog.LoadingDialog
 class HomeFragment :
     BaseFragment(),
     HomeView {
-    private var binding: FragmentHomeBinding? = null
+    private val binding: FragmentHomeBinding by lazy {
+        FragmentHomeBinding.inflate(layoutInflater)
+    }
     private lateinit var presenter: HomePresenter
     private lateinit var categoryAdapter: CategoryAdapter
     private lateinit var popularCocktailAdapter: PopularCocktailAdapter
@@ -35,10 +37,7 @@ class HomeFragment :
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View {
-        binding = FragmentHomeBinding.inflate(inflater, container, false)
-        return binding?.root
-    }
+    ): View = binding.root
 
     override fun initView() {
         setupPresenter()
@@ -56,7 +55,7 @@ class HomeFragment :
             CategoryAdapter { category ->
                 presenter.onCategoryClicked(category)
             }
-        binding?.rvCategories.apply {
+        binding.rvCategories.apply {
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             adapter = categoryAdapter
         }
@@ -71,7 +70,7 @@ class HomeFragment :
                     presenter.onFavoriteClicked(cocktail, isFavorite)
                 },
             )
-        binding?.rvPopular.apply {
+        binding.rvPopular.apply {
             layoutManager = GridLayoutManager(context, 2)
             adapter = popularCocktailAdapter
         }
@@ -89,7 +88,6 @@ class HomeFragment :
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding = null
     }
 
     // HomeView implementations
