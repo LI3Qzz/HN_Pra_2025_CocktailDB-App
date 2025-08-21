@@ -5,5 +5,6 @@ import com.sun.cocktaildb.utils.base.BaseView
 
 interface FavoriteView : BaseView {
 	fun showFavorites(cocktails: List<Cocktail>)
-	fun showEmpty()
+    fun showFavorites(cocktails: List<Cocktail>)
+    fun showEmpty()
 }
