@@ -12,6 +12,10 @@
     <string name="removed_from_favorites">%1$s đã được xóa khỏi danh sách yêu thích!</string>
     <string name="navigate_to_detail_screen">Navigate to detail screen for: %1$s</string>
     <string name="favorite_icon">Icon yêu thích</string>
+
+    <string name="favorite_empty_title">Your favorite is empty</string>
+    <string name="favorite_empty_subtitle">Please add at least one item here</string>
+
     <string name="no_result_found">No result found</string>
     <string name="cocktaildb">CocktailDB</string>
     <string name="sign_in_to_your_cocktail_account">Sign in to your cocktail account</string>
@@ -30,4 +34,5 @@
     <string name="re_enter_your_password_here">Re-enter your password here</string>
     <string name="already_have_an_account">Already have an account?</string>
     <string name="log_in">Log in</string>
+
 </resources>

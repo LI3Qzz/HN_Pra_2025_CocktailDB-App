@@ -1,42 +1,49 @@
 package com.sun.cocktaildb.screen.search.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.sun.cocktaildb.R
 import com.sun.cocktaildb.data.model.Cocktail
+
+
 import com.sun.cocktaildb.databinding.ItemSearchCocktailBinding
 import com.sun.cocktaildb.utils.ImageLoader
 
+
 class SearchAdapter(
-    private val onCocktailClicked: (Cocktail) -> Unit
-) : RecyclerView.Adapter<SearchAdapter.SearchViewHolder>() {
+    private val onItemClick: (Cocktail) -> Unit
+) : RecyclerView.Adapter<SearchAdapter.ViewHolder>() {
 
-    private var cocktails: List<Cocktail> = emptyList()
+    private var items: List<Cocktail> = emptyList()
 
-    fun updateCocktails(newCocktails: List<Cocktail>) {
-        cocktails = newCocktails
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val name: TextView = itemView.findViewById(R.id.tv_cocktail_name)
+        val description: TextView = itemView.findViewById(R.id.tv_cocktail_description)
+        val image: ImageView = itemView.findViewById(R.id.iv_cocktail_image)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_search_cocktail, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val item = items[position]
+        holder.name.text = item.name
+        holder.description.text = item.description
+        holder.itemView.setOnClickListener { onItemClick(item) }
+    }
+
+    override fun getItemCount(): Int = items.size
+
+
+    fun updateCocktails(newItems: List<Cocktail>) {
+        items = newItems
         notifyDataSetChanged()
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchViewHolder {
-        val binding = ItemSearchCocktailBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return SearchViewHolder(binding)
-    }
-
-    override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
-        holder.bind(cocktails[position])
-    }
-
-    override fun getItemCount(): Int = cocktails.size
-
-    inner class SearchViewHolder(
-        private val binding: ItemSearchCocktailBinding
-    ) : RecyclerView.ViewHolder(binding.root) {
 
         init {
             binding.root.setOnClickListener {
@@ -82,5 +89,6 @@ class SearchAdapter(
                 "1/2 oz Ingredients not available"
             }
         }
+
     }
 }
