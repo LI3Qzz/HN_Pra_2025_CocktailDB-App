@@ -86,7 +86,7 @@ class HomeScreenActivity : BaseActivity() {
                 // Profile navigation
             }
         }
-
+    }
     private fun replaceFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
