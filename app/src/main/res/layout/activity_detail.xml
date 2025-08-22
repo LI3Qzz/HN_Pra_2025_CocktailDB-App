@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="#FFFFFF">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -13,7 +13,7 @@
         <FrameLayout
             android:id="@+id/imageContainer"
             android:layout_width="0dp"
-            android:layout_height="@dimen/dp_200"
+            android:layout_height="200dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -25,63 +25,58 @@
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 android:src="@drawable/placeholder"
-                android:background="@color/black"
-                android:contentDescription="@string/cocktail_image"/>
+                android:background="@color/black"/>
 
             <!-- Dark Overlay -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                />
+                android:background="#66000000"/>
 
             <!-- Back Button -->
             <ImageView
                 android:id="@+id/ivBack"
-                android:layout_width="@dimen/button_size"
-                android:layout_height="@dimen/button_size"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginTop="@dimen/text_margin_bottom_large"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_margin="16dp"
                 android:src="@drawable/ic_back_arrow"
                 android:background="@drawable/circle_background"
-                android:padding="@dimen/button_padding"
+                android:padding="12dp"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/back_button"
                 app:tint="@color/black" />
 
             <!-- Action Buttons (Right Side) -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_margin="@dimen/activity_horizontal_margin"
+                android:layout_gravity="top|end"
+                android:layout_margin="16dp"
                 android:orientation="horizontal">
 
                 <ImageView
                     android:id="@+id/ivShare"
-                    android:layout_width="@dimen/dp_32"
-                    android:layout_height="@dimen/dp_32"
-                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="16dp"
                     android:src="@drawable/share_24dp_000000_fill0_wght400_grad0_opsz24"
                     android:background="@drawable/circle_background"
-                    android:padding="@dimen/dp_8"
+                    android:padding="8dp"
                     android:clickable="true"
                     android:focusable="true"
-                    android:foreground="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/share_to_friends"/>
+                    android:foreground="?attr/selectableItemBackgroundBorderless"/>
 
                 <ImageView
                     android:id="@+id/ivFavorite"
-                    android:layout_width="@dimen/dp_32"
-                    android:layout_height="@dimen/dp_32"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
                     android:src="@drawable/ic_favorite_border_black_24dp"
                     android:background="@drawable/circle_background"
-                    android:padding="@dimen/dp_8"
+                    android:padding="8dp"
                     android:clickable="true"
                     android:focusable="true"
-                    android:foreground="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/favorite_icon"/>
+                    android:foreground="?attr/selectableItemBackgroundBorderless"/>
             </LinearLayout>
 
             <!-- Title -->
@@ -90,13 +85,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|start"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginBottom="@dimen/dp_48"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="50dp"
                 android:text="@string/title"
                 android:textColor="@color/white"
-                android:textSize="@dimen/text_size_large"
+                android:textSize="24sp"
                 android:textStyle="bold"
-                android:shadowColor="@color/black"
+                android:shadowColor="#000000"
                 android:shadowDx="1"
                 android:shadowDy="1"
                 android:shadowRadius="3"/>
@@ -107,9 +102,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|start"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginBottom="@dimen/text_margin_bottom_small"
-                android:layout_marginTop="@dimen/text_margin_bottom_small"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="8dp"
                 android:orientation="horizontal"/>
 
         </FrameLayout>
@@ -121,30 +116,30 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:background="@drawable/rounded_box"
-            android:padding="@dimen/activity_horizontal_margin"
+            android:padding="16dp"
             app:layout_constraintTop_toBottomOf="@id/imageContainer"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="@dimen/activity_horizontal_margin"
-            android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin">
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/name"
-                android:textColor="@color/gray"
-                android:textSize="@dimen/text_size_category"/>
+                android:textColor="#666666"
+                android:textSize="14sp"/>
 
             <TextView
                 android:id="@+id/tvCocktailName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/cocktail_name_placeholder"
+                android:text="@string/cocktail_name"
                 android:textStyle="bold"
-                android:textSize="@dimen/text_size_category"
-                android:textColor="@color/black"/>
+                android:textSize="14sp"
+                android:textColor="#000000"/>
         </LinearLayout>
 
         <!-- Ingredients Title -->
@@ -154,21 +149,21 @@
             android:layout_height="wrap_content"
             android:text="@string/ingredients"
             android:textStyle="bold"
-            android:textSize="@dimen/sp_18"
-            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textColor="#000000"
             app:layout_constraintTop_toBottomOf="@id/nameRow"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginTop="@dimen/large_padding"
-            android:layout_marginStart="@dimen/activity_horizontal_margin"/>
+            android:layout_marginTop="24dp"
+            android:layout_marginStart="16dp"/>
 
         <!-- Ingredients RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/activity_horizontal_margin"
-            android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintTop_toBottomOf="@id/tvIngredientsTitle"
             app:layout_constraintEnd_toEndOf="parent"
@@ -181,10 +176,10 @@
             android:layout_height="wrap_content"
             android:text="@string/description"
             android:textStyle="bold"
-            android:textSize="@dimen/sp_18"
-            android:textColor="@color/black"
-            android:layout_marginTop="@dimen/large_padding"
-            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:textSize="18sp"
+            android:textColor="#000000"
+            android:layout_marginTop="24dp"
+            android:layout_marginStart="16dp"
             app:layout_constraintTop_toBottomOf="@id/recyclerView"
             app:layout_constraintStart_toStartOf="parent"/>
 
@@ -194,14 +189,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/instructions_placeholder"
-            android:layout_marginTop="@dimen/activity_horizontal_margin"
-            android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:background="@drawable/rounded_box"
-            android:padding="@dimen/activity_horizontal_margin"
-            android:textSize="@dimen/text_size_category"
-            android:textColor="@color/gray"
-            android:lineSpacingExtra="@dimen/dp_4"
+            android:padding="16dp"
+            android:textSize="14sp"
+            android:textColor="#444444"
+            android:lineSpacingExtra="4dp"
             app:layout_constraintTop_toBottomOf="@id/tvDescriptionTitle"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
@@ -213,9 +208,9 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center"
-            android:layout_marginTop="@dimen/large_padding"
-            android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="24dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             app:layout_constraintTop_toBottomOf="@id/tvDescription"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -228,8 +223,8 @@
                 android:text="@string/add_to_favorites"
                 android:textColor="@color/white"
                 android:background="@drawable/rounded_box"
-                android:padding="@dimen/dp_8"
-                android:textSize="@dimen/text_size_category"/>
+                android:padding="8dp"
+                android:textSize="14sp"/>
 
             <Button
                 android:id="@+id/btnShare"
@@ -239,9 +234,9 @@
                 android:text="@string/share_to_friends"
                 android:textColor="@color/white"
                 android:background="@drawable/rounded_box"
-                android:padding="@dimen/dp_8"
-                android:layout_marginStart="@dimen/text_margin_top_medium"
-                android:textSize="@dimen/text_size_category"/>
+                android:padding="8dp"
+                android:layout_marginStart="12dp"
+                android:textSize="14sp"/>
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

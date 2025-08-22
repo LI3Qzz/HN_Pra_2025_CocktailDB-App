@@ -5,7 +5,6 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.sun.cocktaildb.data.model.User
 import com.sun.cocktaildb.data.repository.remote.AuthRepository
-import com.sun.cocktaildb.utils.Constants
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
@@ -32,7 +31,7 @@ class FirebaseAuthImplement(
                             callback(Result.failure(Exception("User creation failed")))
                         }
                     } else {
-                        callback(Result.failure(task.exception ?: Exception(Constants.UNKNOWN_ERROR)))
+                        callback(Result.failure(task.exception ?: Exception("Unknown error")))
                     }
                 }
         }
@@ -50,7 +49,7 @@ class FirebaseAuthImplement(
                     if (task.isSuccessful) {
                         callback(Result.success("Success"))
                     } else {
-                        callback(Result.failure(task.exception ?: Exception(Constants.UNKNOWN_ERROR)))
+                        callback(Result.failure(task.exception ?: Exception("Unknown error")))
                     }
                 }
         }

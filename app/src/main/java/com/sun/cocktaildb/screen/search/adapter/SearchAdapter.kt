@@ -1,38 +1,22 @@
 package com.sun.cocktaildb.screen.search.adapter
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.RecyclerView
 import com.sun.cocktaildb.R
 import com.sun.cocktaildb.data.model.Cocktail
 import com.sun.cocktaildb.databinding.ItemSearchCocktailBinding
 import com.sun.cocktaildb.utils.ImageLoader
-import com.sun.cocktaildb.utils.Constants
 
 class SearchAdapter(
-    private val onCocktailClicked: (Cocktail) -> Unit,
-    private val onFavoriteClickListener: (Cocktail, Boolean) -> Unit
+    private val onCocktailClicked: (Cocktail) -> Unit
 ) : RecyclerView.Adapter<SearchAdapter.SearchViewHolder>() {
 
-    private var cocktails: MutableList<Cocktail> = mutableListOf()
-    private var currentSearchQuery: String = ""
+    private var cocktails: List<Cocktail> = emptyList()
 
-    fun updateCocktails(newCocktails: List<Cocktail>, searchQuery: String = "") {
-        cocktails.clear()
-        cocktails.addAll(newCocktails)
-        currentSearchQuery = searchQuery
+    fun updateCocktails(newCocktails: List<Cocktail>) {
+        cocktails = newCocktails
         notifyDataSetChanged()
-    }
-    
-    fun updateCocktailFavoriteStatus(cocktailId: String, isFavorite: Boolean) {
-        val index = cocktails.indexOfFirst { it.id == cocktailId }
-        if (index != -1) {
-            val updatedCocktail = cocktails[index].copy(isFavorite = isFavorite)
-            cocktails[index] = updatedCocktail
-            notifyItemChanged(index)
-        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchViewHolder {
@@ -56,82 +40,47 @@ class SearchAdapter(
 
         init {
             binding.root.setOnClickListener {
-                val position = bindingAdapterPosition
+                val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     onCocktailClicked(cocktails[position])
-                }
-            }
-            
-            binding.ivFavorite.setOnClickListener {
-                val position = bindingAdapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    val cocktail = cocktails[position]
-                    // Play animation
-                    val animation = AnimationUtils.loadAnimation(itemView.context, R.anim.favorite_scale)
-                    binding.ivFavorite.startAnimation(animation)
-                    
-                    val newFavoriteStatus = !cocktail.isFavorite
-                    onFavoriteClickListener(cocktail, newFavoriteStatus)
                 }
             }
         }
 
         fun bind(cocktail: Cocktail) {
             binding.apply {
-                // Highlight search terms in cocktail name if searching by name
-                if (currentSearchQuery.isNotEmpty()) {
-                    tvCocktailName.text = highlightSearchTerms(cocktail.name, currentSearchQuery)
-                } else {
-                    tvCocktailName.text = cocktail.name
-                }
+                tvCocktailName.text = cocktail.name
 
-                // Show category in description
-                val categoryText = "Category: ${cocktail.category}"
-                tvCocktailDescription.text = categoryText
+                // Display ingredients in the format shown in the image
+                val ingredientsText = getIngredientsText(cocktail)
+                tvCocktailDescription.text = ingredientsText
 
                 // Load image using ImageLoader utility
                 val imageUrl = cocktail.imageUrl
-                if (imageUrl.isNotEmpty() && imageUrl != Constants.PLACEHOLDER_IMAGE_URL) {
+                if (imageUrl.isNotEmpty() && imageUrl != "https://example.com/placeholder.jpg") {
                     ImageLoader.loadImage(ivCocktailImage, imageUrl, R.drawable.placeholder)
                 } else {
                     ivCocktailImage.setImageResource(R.drawable.placeholder)
                 }
-                
-                // Set favorite icon based on cocktail's favorite status
-                updateFavoriteIcon(cocktail.isFavorite)
-            }
-        }
-        
-        private fun updateFavoriteIcon(isFavorite: Boolean) {
-            if (isFavorite) {
-                binding.ivFavorite.setImageResource(R.drawable.ic_favorite_filled_black_24dp)
-            } else {
-                binding.ivFavorite.setImageResource(R.drawable.ic_favorite_border_black_24dp)
             }
         }
 
-        // Highlight search terms in text (prioritize left-to-right matches)
-        private fun highlightSearchTerms(text: String, query: String): android.text.SpannableString {
-            val spannableString = android.text.SpannableString(text)
-            val lowerText = text.lowercase()
-            val lowerQuery = query.lowercase()
-            
-            var startIndex = 0
-            while (true) {
-                val index = lowerText.indexOf(lowerQuery, startIndex)
-                if (index == -1) break
-                
-                spannableString.setSpan(
-                    android.text.style.BackgroundColorSpan(android.graphics.Color.YELLOW),
-                    index,
-                    index + query.length,
-                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-                
-                startIndex = index + 1
+        // Extract complex logic into separate method for better readability and testability
+        private fun getIngredientsText(cocktail: Cocktail): String {
+            return if (cocktail.ingredients.isNotEmpty() &&
+                cocktail.ingredients.first() != "Ingredients not available") {
+                // Show first ingredient with its measure if available
+                val firstIngredient = cocktail.ingredients.first()
+                if (firstIngredient.contains(" ")) {
+                    // If ingredient already has measure, use as is
+                    firstIngredient
+                } else {
+                    // Add default measure
+                    "1/2 oz $firstIngredient"
+                }
+            } else {
+                "1/2 oz Ingredients not available"
             }
-            
-            return spannableString
         }
     }
 }

@@ -6,7 +6,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.sun.cocktaildb.data.model.Category
 import com.sun.cocktaildb.data.model.Cocktail
 import com.sun.cocktaildb.data.repository.remote.CocktailRepository
-import com.sun.cocktaildb.utils.Constants
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -17,23 +16,7 @@ import java.net.URL
 class CocktailRepositoryImpl constructor(
     private val firebase: FirebaseAuthImplement = FirebaseAuthImplement(),
 ) : CocktailRepository {
-    private val baseUrl = Constants.BASE_URL
-
-    // Combine parallel ingredient and measure lists into display items.
-    private fun combineIngredientAndMeasure(
-        ingredients: List<String>,
-        measures: List<String>,
-    ): List<String> {
-        return ingredients.mapIndexed { index, ingredient ->
-            val measure = measures.getOrNull(index).orEmpty().trim()
-            val ingredientName = ingredient.trim()
-            if (measure.isNotEmpty()) {
-                "$ingredientName|||$measure"
-            } else {
-                ingredientName
-            }
-        }
-    }
+    private val baseUrl = "https://www.thecocktaildb.com/api/json/v1/1/"
 
     override fun getCategories(): List<Category> {
         try {
@@ -52,7 +35,7 @@ class CocktailRepositoryImpl constructor(
                         if (sampleCocktails.isNotEmpty()) {
                             sampleCocktails.first().imageUrl
                         } else {
-                            "${Constants.CATEGORY_IMAGE_BASE_URL}/$name.jpg"
+                            "https://example.com/$name.jpg"
                         }
 
                     result.add(
@@ -112,8 +95,15 @@ class CocktailRepositoryImpl constructor(
                         }
                     }
 
-                    // Combine ingredients with measures (ingredient first)
-                    val ingredientsWithMeasures = combineIngredientAndMeasure(ingredients, measures)
+                    // Combine ingredients with measures
+                    val ingredientsWithMeasures =
+                        if (ingredients.size == measures.size) {
+                            ingredients.mapIndexed { index, ingredient ->
+                                "${measures[index]} $ingredient".trim()
+                            }
+                        } else {
+                            ingredients
+                        }
 
                     val description =
                         buildString {
@@ -130,9 +120,9 @@ class CocktailRepositoryImpl constructor(
                             name = name,
                             description = description,
                             imageUrl = thumb.ifEmpty { "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg" },
-                            ingredients = ingredientsWithMeasures.ifEmpty { listOf(Constants.DEFAULT_INGREDIENTS) },
-                            instructions = Constants.DEFAULT_INSTRUCTIONS,
-                            category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
+                            instructions = "Instructions not available",
+                            category = category.ifEmpty { "Unknown" },
                         ),
                     )
                 }
@@ -181,8 +171,15 @@ class CocktailRepositoryImpl constructor(
                         }
                     }
 
-                    // Combine ingredients with measures (ingredient first)
-                    val ingredientsWithMeasures = combineIngredientAndMeasure(ingredients, measures)
+                    // Combine ingredients with measures
+                    val ingredientsWithMeasures =
+                        if (ingredients.size == measures.size) {
+                            ingredients.mapIndexed { index, ingredient ->
+                                "${measures[index]} $ingredient".trim()
+                            }
+                        } else {
+                            ingredients
+                        }
 
                     val description =
                         buildString {
@@ -197,9 +194,9 @@ class CocktailRepositoryImpl constructor(
                             id = id,
                             name = name,
                             description = description,
-                            imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
-                            ingredients = ingredientsWithMeasures.ifEmpty { listOf(Constants.DEFAULT_INGREDIENTS) },
-                            instructions = Constants.DEFAULT_INSTRUCTIONS,
+                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
+                            instructions = "Instructions not available",
                             category = category.ifEmpty { categoryId },
                         ),
                     )
@@ -241,8 +238,15 @@ class CocktailRepositoryImpl constructor(
                 }
             }
 
-            // Combine ingredients with measures (ingredient first)
-            val ingredientsWithMeasures = combineIngredientAndMeasure(ingredients, measures)
+            // Combine ingredients with measures
+            val ingredientsWithMeasures =
+                if (ingredients.size == measures.size) {
+                    ingredients.mapIndexed { index, ingredient ->
+                        "${measures[index]} $ingredient".trim()
+                    }
+                } else {
+                    ingredients
+                }
 
             val description =
                 buildString {
@@ -261,16 +265,15 @@ class CocktailRepositoryImpl constructor(
                     }
                 }
 
-            val cocktail = Cocktail(
+            return Cocktail(
                 id = id,
                 name = name,
-                description = description.ifEmpty { Constants.DEFAULT_DESCRIPTION },
-                imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
-                ingredients = ingredientsWithMeasures.ifEmpty { listOf(Constants.DEFAULT_INGREDIENTS) },
-                instructions = instructions.ifEmpty { Constants.DEFAULT_INSTRUCTIONS },
-                category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
+                description = description.ifEmpty { "Delicious cocktail" },
+                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
+                instructions = instructions.ifEmpty { "Instructions not available" },
+                category = category.ifEmpty { "Unknown" },
             )
-            return cocktail
         } catch (e: Exception) {
             return null
         }
@@ -283,7 +286,10 @@ class CocktailRepositoryImpl constructor(
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
 
-            for (i in 0 until drinksArray.length()) {
+            // Limit to first 20 cocktails to avoid too many API calls
+            val limit = minOf(20, drinksArray.length())
+
+            for (i in 0 until limit) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
@@ -308,10 +314,10 @@ class CocktailRepositoryImpl constructor(
                                 id = id,
                                 name = name,
                                 description = description,
-                                imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
-                                ingredients = listOf(Constants.DEFAULT_INGREDIENTS),
-                                instructions = Constants.DEFAULT_INSTRUCTIONS,
-                                category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
+                                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                                ingredients = listOf("Ingredients not available"),
+                                instructions = "Instructions not available",
+                                category = category.ifEmpty { "Unknown" },
                             ),
                         )
                     }
@@ -331,7 +337,10 @@ class CocktailRepositoryImpl constructor(
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
 
-            for (i in 0 until drinksArray.length()) {
+            // Limit to first 20 cocktails to avoid too many API calls
+            val limit = minOf(20, drinksArray.length())
+
+            for (i in 0 until limit) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
@@ -354,11 +363,11 @@ class CocktailRepositoryImpl constructor(
                             Cocktail(
                                 id = id,
                                 name = name,
-                                description = description.ifEmpty { Constants.DEFAULT_DESCRIPTION },
-                                imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
-                                ingredients = listOf(Constants.DEFAULT_INGREDIENTS),
-                                instructions = Constants.DEFAULT_INSTRUCTIONS,
-                                category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
+                                description = description.ifEmpty { "Delicious cocktail" },
+                                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                                ingredients = listOf("Ingredients not available"),
+                                instructions = "Instructions not available",
+                                category = category.ifEmpty { "Unknown" },
                             ),
                         )
                     }
@@ -389,7 +398,10 @@ class CocktailRepositoryImpl constructor(
             Log.d(TAG, "Found ${drinksArray.length()} cocktails")
             val result = mutableListOf<Cocktail>()
 
-            for (i in 0 until drinksArray.length()) {
+            // Limit to first 20 cocktails to avoid too many API calls
+            val limit = minOf(20, drinksArray.length())
+
+            for (i in 0 until limit) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
@@ -416,8 +428,15 @@ class CocktailRepositoryImpl constructor(
                         }
                     }
 
-                    // Combine ingredients with measures (ingredient first)
-                    val ingredientsWithMeasures = combineIngredientAndMeasure(ingredients, measures)
+                    // Combine ingredients with measures
+                    val ingredientsWithMeasures =
+                        if (ingredients.size == measures.size) {
+                            ingredients.mapIndexed { index, ingredient ->
+                                "${measures[index]} $ingredient".trim()
+                            }
+                        } else {
+                            ingredients
+                        }
 
                     val description =
                         buildString {
@@ -432,10 +451,10 @@ class CocktailRepositoryImpl constructor(
                             id = id,
                             name = name,
                             description = description,
-                            imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
-                            ingredients = ingredientsWithMeasures.ifEmpty { listOf(Constants.DEFAULT_INGREDIENTS) },
-                            instructions = instructions.ifEmpty { Constants.DEFAULT_INSTRUCTIONS },
-                            category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
+                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
+                            instructions = instructions.ifEmpty { "Instructions not available" },
+                            category = category.ifEmpty { "Unknown" },
                         ),
                     )
                     println("DEBUG: Added cocktail: $name with ${ingredientsWithMeasures.size} ingredients")
@@ -466,7 +485,10 @@ class CocktailRepositoryImpl constructor(
             val drinksArray = JSONObject(filterJson).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
 
-            for (i in 0 until drinksArray.length()) {
+            // Limit to first 20 cocktails to avoid too many API calls
+            val limit = minOf(20, drinksArray.length())
+
+            for (i in 0 until limit) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
@@ -485,10 +507,10 @@ class CocktailRepositoryImpl constructor(
                                 id = id,
                                 name = name,
                                 description = "Cocktails containing $ingredient",
-                                imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
-                                ingredients = listOf(Constants.DEFAULT_INGREDIENTS),
-                                instructions = Constants.DEFAULT_INSTRUCTIONS,
-                                category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
+                                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                                ingredients = listOf("Ingredients not available"),
+                                instructions = "Instructions not available",
+                                category = category.ifEmpty { "Unknown" },
                             ),
                         )
                     }
@@ -508,7 +530,10 @@ class CocktailRepositoryImpl constructor(
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
 
-            for (i in 0 until drinksArray.length()) {
+            // Limit to first 20 cocktails to avoid too many API calls
+            val limit = minOf(20, drinksArray.length())
+
+            for (i in 0 until limit) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
@@ -533,10 +558,10 @@ class CocktailRepositoryImpl constructor(
                                 id = id,
                                 name = name,
                                 description = description,
-                                imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
-                                ingredients = listOf(Constants.DEFAULT_INGREDIENTS),
-                                instructions = Constants.DEFAULT_INSTRUCTIONS,
-                                category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
+                                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                                ingredients = listOf("Ingredients not available"),
+                                instructions = "Instructions not available",
+                                category = category.ifEmpty { "Unknown" },
                             ),
                         )
                     }
@@ -595,8 +620,15 @@ class CocktailRepositoryImpl constructor(
                         }
                     }
 
-                    // Combine ingredients with measures (ingredient first)
-                    val ingredientsWithMeasures = combineIngredientAndMeasure(ingredients, measures)
+                    // Combine ingredients with measures
+                    val ingredientsWithMeasures =
+                        if (ingredients.size == measures.size) {
+                            ingredients.mapIndexed { index, ingredient ->
+                                "${measures[index]} $ingredient".trim()
+                            }
+                        } else {
+                            ingredients
+                        }
 
                     val description =
                         buildString {
@@ -611,9 +643,9 @@ class CocktailRepositoryImpl constructor(
                             id = id,
                             name = name,
                             description = description,
-                            imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
-                            ingredients = ingredientsWithMeasures.ifEmpty { listOf(Constants.DEFAULT_INGREDIENTS) },
-                            instructions = Constants.DEFAULT_INSTRUCTIONS,
+                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
+                            instructions = "Instructions not available",
                             category = categoryName.ifEmpty { category },
                         ),
                     )
@@ -868,10 +900,10 @@ class CocktailRepositoryImpl constructor(
                             id = id,
                             name = name,
                             description = description,
-                            imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
-                            ingredients = ingredientsWithMeasures.ifEmpty { listOf(Constants.DEFAULT_INGREDIENTS) },
-                            instructions = Constants.DEFAULT_INSTRUCTIONS,
-                            category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
+                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
+                            instructions = "Instructions not available",
+                            category = category.ifEmpty { "Unknown" },
                         ),
                     )
                 }

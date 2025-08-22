@@ -22,7 +22,6 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/dp_16"
         android:text="@string/measure"
-        android:textStyle="bold"
         android:textColor="@color/black"
         android:textSize="@dimen/sp_14" />
 
