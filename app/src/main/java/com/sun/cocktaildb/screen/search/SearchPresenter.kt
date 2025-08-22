@@ -5,6 +5,7 @@ import android.os.Looper
 import com.sun.cocktaildb.data.model.Cocktail
 import com.sun.cocktaildb.data.repository.remote.CocktailRepository
 import com.sun.cocktaildb.utils.base.BasePresenter
+import com.sun.cocktaildb.utils.FavoriteManager
 import java.util.concurrent.Executors
 
 class SearchPresenter(
@@ -21,13 +22,6 @@ class SearchPresenter(
     // Filter state
     private var selectedAlcoholicFilter: String? = null
     private var selectedIngredientFilter: String? = null
-
-    // Cache for performance (LRU with max size)
-    private val CACHE_MAX_SIZE = 100
-    private val cachedResults =
-        object : LinkedHashMap<String, List<Cocktail>>(CACHE_MAX_SIZE, 0.75f, true) {
-            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, List<Cocktail>>?): Boolean = size > CACHE_MAX_SIZE
-        }
 
     // Search history
     private val searchHistory = mutableListOf<String>()
@@ -63,21 +57,8 @@ class SearchPresenter(
             return
         }
 
-        // Check cache first
-        val cacheKey = generateCacheKey(query.trim(), searchType, selectedAlcoholicFilter, selectedIngredientFilter)
-        cachedResults[cacheKey]?.let { cached ->
-            view?.hideHistory()
-            view?.hideLoading()
-            if (cached.isNotEmpty()) {
-                view?.showSearchResults(cached)
-            } else {
-                view?.showNoResults()
-            }
-            return
-        }
-
         // Add to search history for meaningful searches
-        if (query.trim().length >= 2) {
+        if (query.trim().isNotEmpty()) {
             addToHistory(query.trim())
         }
 
@@ -120,14 +101,16 @@ class SearchPresenter(
 				
                 // Apply filters if selected
                 results = applyFilters(results)
-				
-                // Cache the results
-                cachedResults[cacheKey] = results
+                
+                // Update favorite status for all cocktails
+                val updatedResults = results.map { cocktail ->
+                    cocktail.copy(isFavorite = FavoriteManager.isFavorite(cocktail.id))
+                }
 				
                 mainHandler.post {
                     view?.hideLoading()
-                    if (results.isNotEmpty()) {
-                        view?.showSearchResults(results)
+                    if (updatedResults.isNotEmpty()) {
+                        view?.showSearchResults(updatedResults)
                     } else {
                         view?.showNoResults()
                     }
@@ -173,7 +156,7 @@ class SearchPresenter(
     }
 
     // Add query to search history
-    private fun addToHistory(query: String) {
+    fun addToHistory(query: String) {
         searchHistory.remove(query)
         searchHistory.add(0, query)
         if (searchHistory.size > maxHistorySize) {
@@ -190,18 +173,7 @@ class SearchPresenter(
     // Get search history
     fun getSearchHistory(): List<String> = searchHistory.toList()
 
-    // Generate cache key for results
-    private fun generateCacheKey(
-        query: String,
-        searchType: SearchType,
-        alcoholicFilter: String?,
-        ingredientFilter: String?,
-    ): String = "${query}_${searchType}_${alcoholicFilter ?: "null"}_${ingredientFilter ?: "null"}"
 
-    // Clear cache when needed
-    fun clearCache() {
-        cachedResults.clear()
-    }
 
     // Apply filters to cocktail list
     private fun applyFilters(cocktails: List<Cocktail>): List<Cocktail> {
