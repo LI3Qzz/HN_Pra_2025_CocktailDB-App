@@ -4,41 +4,48 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.widget.Toast
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.recyclerview.widget.GridLayoutManager
+import com.sun.cocktaildb.R
 import com.sun.cocktaildb.data.model.Category
 import com.sun.cocktaildb.data.model.Cocktail
-import com.sun.cocktaildb.R
 import com.sun.cocktaildb.data.repository.impl.CocktailRepositoryImpl
 import com.sun.cocktaildb.databinding.ActivityCategoryDetailBinding
+import com.sun.cocktaildb.screen.cocktaildetail.CocktailActivity
 import com.sun.cocktaildb.screen.home.adapter.PopularCocktailAdapter
-import com.sun.cocktaildb.utils.base.BaseActivity
 import com.sun.cocktaildb.utils.FavoriteManager
+import com.sun.cocktaildb.utils.base.BaseActivity
 
-class CategoryDetailActivity : BaseActivity(), CategoryDetailView {
+class CategoryDetailActivity :
+    BaseActivity(),
+    CategoryDetailView {
     private lateinit var binding: ActivityCategoryDetailBinding
     private lateinit var presenter: CategoryDetailPresenter
     private lateinit var cocktailAdapter: PopularCocktailAdapter
-    
+
     companion object {
         private const val EXTRA_CATEGORY = "extra_category"
-        
-        fun newIntent(context: Context, category: Category): Intent {
-            return Intent(context, CategoryDetailActivity::class.java).apply {
+
+        fun newIntent(
+            context: Context,
+            category: Category,
+        ): Intent =
+            Intent(context, CategoryDetailActivity::class.java).apply {
                 putExtra(EXTRA_CATEGORY, category)
             }
-        }
     }
 
     override fun initView() {
         binding = ActivityCategoryDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val category = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra(EXTRA_CATEGORY, Category::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra<Category>(EXTRA_CATEGORY)
-        } ?: throw IllegalArgumentException("Category is required")
+        val category =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(EXTRA_CATEGORY, Category::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra<Category>(EXTRA_CATEGORY)
+            } ?: throw IllegalArgumentException("Category is required")
 
         setupPresenter(category)
         setupRecyclerView()
@@ -51,14 +58,15 @@ class CategoryDetailActivity : BaseActivity(), CategoryDetailView {
     }
 
     private fun setupRecyclerView() {
-        cocktailAdapter = PopularCocktailAdapter(
-            onCocktailClickListener = { cocktail ->
-                presenter.onCocktailClicked(cocktail)
-            },
-            onFavoriteClickListener = { cocktail, isFavorite ->
-                presenter.onFavoriteClicked(cocktail, isFavorite)
-            }
-        )
+        cocktailAdapter =
+            PopularCocktailAdapter(
+                onCocktailClickListener = { cocktail ->
+                    presenter.onCocktailClicked(cocktail)
+                },
+                onFavoriteClickListener = { cocktail, isFavorite ->
+                    presenter.onFavoriteClicked(cocktail, isFavorite)
+                },
+            )
         binding.rvCocktails.apply {
             layoutManager = GridLayoutManager(this@CategoryDetailActivity, 2)
             adapter = cocktailAdapter
@@ -103,20 +111,22 @@ class CategoryDetailActivity : BaseActivity(), CategoryDetailView {
     }
 
     override fun onCocktailClicked(cocktail: Cocktail) {
-        Toast.makeText(this, getString(R.string.clicked_item, cocktail.name), Toast.LENGTH_SHORT).show()
-        // Navigate to cocktail detail
+        val intent = CocktailActivity.newIntent(this, cocktail.id)
     }
-    
-    override fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
+
+    override fun onFavoriteClicked(
+        cocktail: Cocktail,
+        isFavorite: Boolean,
+    ) {
         if (isFavorite) {
             Toast.makeText(this, getString(R.string.added_to_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
         } else {
             Toast.makeText(this, getString(R.string.removed_from_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
         }
-        
+
         // Update the cocktail favorite status in the adapter
         cocktailAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
-        
+
         // Update favorite status in FavoriteManager
         if (isFavorite) {
             FavoriteManager.addToFavorites(cocktail)

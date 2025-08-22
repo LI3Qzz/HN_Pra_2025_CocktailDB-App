@@ -13,6 +13,7 @@ import com.sun.cocktaildb.data.model.Cocktail
 import com.sun.cocktaildb.data.repository.impl.CocktailRepositoryImpl
 import com.sun.cocktaildb.databinding.FragmentHomeBinding
 import com.sun.cocktaildb.screen.categorydetail.CategoryDetailActivity
+import com.sun.cocktaildb.screen.cocktaildetail.CocktailActivity
 import com.sun.cocktaildb.screen.home.adapter.CategoryAdapter
 import com.sun.cocktaildb.screen.home.adapter.PopularCocktailAdapter
 import com.sun.cocktaildb.utils.FavoriteManager
@@ -78,11 +79,7 @@ class HomeFragment :
 
     override fun onResume() {
         super.onResume()
-        if (!::categoryAdapter.isInitialized || categoryAdapter.itemCount == 0 ||
-            !::popularCocktailAdapter.isInitialized || popularCocktailAdapter.itemCount == 0
-        ) {
-            presenter.onStart()
-        }
+        presenter.onStart()
     }
 
     override fun onPause() {
@@ -122,8 +119,8 @@ class HomeFragment :
     }
 
     override fun onCocktailClicked(cocktail: Cocktail) {
-        Toast.makeText(context, getString(R.string.navigate_to_detail_screen, cocktail.name), Toast.LENGTH_SHORT).show()
-        // TODO: Navigate to detail screen later
+        val intent = CocktailActivity.newIntent(requireContext(), cocktail.id)
+        startActivity(intent)
     }
 
     override fun onFavoriteClicked(

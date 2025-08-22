@@ -7,8 +7,10 @@ import android.view.ViewGroup
 import com.sun.cocktaildb.databinding.FragmentFavoriteBinding
 import com.sun.cocktaildb.utils.base.BaseFragment
 
-class FavoriteFragment : BaseFragment(), FavoriteView {
-
+class FavoriteFragment :
+    BaseFragment(),
+    FavoriteView {
+    @Suppress("ktlint:standard:backing-property-naming")
     private var _binding: FragmentFavoriteBinding? = null
     private val binding get() = _binding!!
 
@@ -17,7 +19,7 @@ class FavoriteFragment : BaseFragment(), FavoriteView {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentFavoriteBinding.inflate(inflater, container, false)
         return binding.root
@@ -35,7 +37,9 @@ class FavoriteFragment : BaseFragment(), FavoriteView {
     }
 
     override fun showLoading() {}
+
     override fun hideLoading() {}
+
     override fun showError(message: String) {}
 
     override fun onDestroyView() {

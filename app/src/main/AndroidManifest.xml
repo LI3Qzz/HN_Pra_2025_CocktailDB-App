@@ -44,11 +44,7 @@
             android:exported="false" />
 
         <activity
-            android:name=".screen.cocktaildetail.CocktailDetailActivity"
-            android:exported="false" />
-      
-        <activity
-            android:name=".screen.favorite.FavoriteActivity"
+            android:name=".screen.cocktaildetail.CocktailActivity"
             android:exported="false" />
 
         <meta-data

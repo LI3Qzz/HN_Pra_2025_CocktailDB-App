@@ -66,6 +66,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
     androidTestImplementation(libs.androidx.espresso.core)
+
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation("com.google.firebase:firebase-core:21.1.1")

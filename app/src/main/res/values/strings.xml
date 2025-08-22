@@ -67,5 +67,24 @@
     <string name="cocktail_name_placeholder">Cocktail name</string>
     <string name="ingredient_list_placeholder">1/2 oz contour\n1/2 oz contour\n1/2 oz contour</string>
     <string name="category_placeholder">Category</string>
+    <string name="save">Save</string>
+    <string name="edit_profile">Edit profile</string>
+    <string name="invalid_cocktail_id">"Invalid cocktail "</string>
+    <string name="non_alcoholic">Non-Alcoholic</string>
+    <string name="instructions_not_available">Instruction not available</string>
+    <string name="remove_from_favorites">Remove from favorites</string>
+    <string name="add_to_favorites">Add to favourite</string>
+    <string name="share_subject">Share subject</string>
+    <string name="share_text">Share text</string>
+    <string name="share_via">Share via</string>
+    <string name="enter_name">Enter name</string>
+    <string name="enter_email">Enter email</string>
+    <string name="phone_number">Phone</string>
+    <string name="enter_phone">Enter phone number</string>
+    <string name="logout">Logout</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="instructions_placeholder">"Instruction "</string>
+    <string name="share_to_friends">Share</string>
 
 </resources>
