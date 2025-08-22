@@ -1,10 +1,11 @@
 package com.sun.cocktaildb.utils
 
+import android.os.Handler
+import android.os.Looper
 import com.sun.cocktaildb.data.model.Cocktail
 import com.sun.cocktaildb.data.repository.impl.CocktailRepositoryImpl
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 
 /**
  * Manager to handle favorite synchronization across all screens
@@ -12,32 +13,26 @@ import kotlinx.coroutines.launch
  */
 object FavoriteSyncManager {
     private val repository = CocktailRepositoryImpl()
-    private val scope = CoroutineScope(Dispatchers.IO)
-    
-    // Callback interface for screen updates
+    private val executor = Executors.newSingleThreadExecutor()
+    private val mainHandler = Handler(Looper.getMainLooper())
+
     interface FavoriteUpdateListener {
         fun onFavoriteUpdated(cocktailId: String, isFavorite: Boolean)
         fun onFavoritesRefreshed()
     }
-    
+
     private val listeners = mutableListOf<FavoriteUpdateListener>()
-    
-    /**
-     * Register a screen to receive favorite updates
-     */
+
     fun registerListener(listener: FavoriteUpdateListener) {
         if (!listeners.contains(listener)) {
             listeners.add(listener)
         }
     }
-    
-    /**
-     * Unregister a screen from favorite updates
-     */
+
     fun unregisterListener(listener: FavoriteUpdateListener) {
         listeners.remove(listener)
     }
-    
+
     /**
      * Update favorite status and notify all screens
      * This is the main method called when user clicks favorite button
@@ -51,7 +46,7 @@ object FavoriteSyncManager {
         }
         
         // Save to Firebase and notify all screens
-        scope.launch {
+        executor.execute {
             try {
                 if (isFavorite) {
                     repository.addFavourite(cocktail.id)
@@ -60,86 +55,72 @@ object FavoriteSyncManager {
                 }
                 
                 // Notify all registered screens about the specific cocktail update
-                notifyListeners(cocktail.id, isFavorite)
+                mainHandler.post {
+                    notifyListeners(cocktail.id, isFavorite)
+                }
             } catch (e: Exception) {
                 // If Firebase fails, still notify local screens
-                notifyListeners(cocktail.id, isFavorite)
+                mainHandler.post {
+                    notifyListeners(cocktail.id, isFavorite)
+                }
             }
         }
     }
-    
-    /**
-     * Refresh all screens with current favorite status from Firebase
-     * This ensures all screens are in sync with the server
-     */
+
     fun refreshAllScreens() {
-        scope.launch {
+        executor.execute {
             try {
-                // Get current favorites from Firebase
                 repository.getFavouriteCocktails { result ->
                     if (result.isSuccess) {
                         val favoriteCocktails = result.getOrNull() ?: emptyList()
-                        
-                        // Update FavoriteManager with current favorites
                         FavoriteManager.clearFavorites()
                         favoriteCocktails.forEach { cocktail ->
                             FavoriteManager.addToFavorites(cocktail)
                         }
-                        
-                        // Notify all screens to refresh
-                        notifyAllScreensRefreshed()
+                        mainHandler.post {
+                            notifyAllScreensRefreshed()
+                        }
                     } else {
-                        // If Firebase fails, still notify screens to refresh from local data
-                        notifyAllScreensRefreshed()
+                        mainHandler.post {
+                            notifyAllScreensRefreshed() // Still notify screens to refresh from local data
+                        }
                     }
                 }
             } catch (e: Exception) {
-                // Handle error silently and notify screens to refresh from local data
-                notifyAllScreensRefreshed()
+                mainHandler.post {
+                    notifyAllScreensRefreshed() // Handle error silently and notify screens to refresh from local data
+                }
             }
         }
     }
-    
-    /**
-     * Get current favorite status for a cocktail
-     */
+
     fun isFavorite(cocktailId: String): Boolean {
         return FavoriteManager.isFavorite(cocktailId)
     }
-    
-    /**
-     * Get all favorite cocktails from local storage
-     */
+
     fun getFavoriteCocktails(): List<Cocktail> {
-        // This should return actual Cocktail objects, not just IDs
-        // For now, return empty list since we only store IDs in FavoriteManager
-        return emptyList()
+        return emptyList() // Placeholder, as FavoriteManager only stores IDs
     }
-    
-    /**
-     * Get favorite cocktail IDs
-     */
+
     fun getFavoriteCocktailIds(): Set<String> {
         return FavoriteManager.getFavoriteCocktails()
     }
-    
+
     private fun notifyListeners(cocktailId: String, isFavorite: Boolean) {
         listeners.forEach { listener ->
             try {
                 listener.onFavoriteUpdated(cocktailId, isFavorite)
             } catch (e: Exception) {
-                // Remove broken listeners
                 listeners.remove(listener)
             }
         }
     }
-    
+
     private fun notifyAllScreensRefreshed() {
         listeners.forEach { listener ->
             try {
                 listener.onFavoritesRefreshed()
             } catch (e: Exception) {
-                // Remove broken listeners
                 listeners.remove(listener)
             }
         }
