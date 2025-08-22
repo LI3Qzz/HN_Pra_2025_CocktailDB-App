@@ -1,4 +1,4 @@
-package com.sun.cocktaildb.data.repository
+package com.sun.cocktaildb.data.repository.remote
 
 interface AuthRepository {
     fun register(

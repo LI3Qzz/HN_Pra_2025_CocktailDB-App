@@ -4,9 +4,9 @@ import android.os.Handler
 import android.os.Looper
 import com.sun.cocktaildb.data.model.Category
 import com.sun.cocktaildb.data.model.Cocktail
-import com.sun.cocktaildb.data.repository.CocktailRepository
-import com.sun.cocktaildb.utils.base.BasePresenter
+import com.sun.cocktaildb.data.repository.remote.CocktailRepository
 import com.sun.cocktaildb.utils.FavoriteManager
+import com.sun.cocktaildb.utils.base.BasePresenter
 import java.util.concurrent.Executors
 
 class HomePresenter(
@@ -54,9 +54,10 @@ class HomePresenter(
             try {
                 val cocktails = cocktailRepository.getPopularCocktails()
                 // Update favorite status based on FavoriteManager
-                val updatedCocktails = cocktails.map { cocktail ->
-                    cocktail.copy(isFavorite = FavoriteManager.isFavorite(cocktail.id))
-                }
+                val updatedCocktails =
+                    cocktails.map { cocktail ->
+                        cocktail.copy(isFavorite = FavoriteManager.isFavorite(cocktail.id))
+                    }
                 mainHandler.post {
                     if (updatedCocktails.isNotEmpty()) {
                         view?.showPopularCocktails(updatedCocktails)
@@ -81,8 +82,11 @@ class HomePresenter(
     fun onCocktailClicked(cocktail: Cocktail) {
         view?.onCocktailClicked(cocktail)
     }
-    
-    fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
+
+    fun onFavoriteClicked(
+        cocktail: Cocktail,
+        isFavorite: Boolean,
+    ) {
         view?.onFavoriteClicked(cocktail, isFavorite)
     }
 

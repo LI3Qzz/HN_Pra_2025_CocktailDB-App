@@ -1,7 +1,7 @@
 package com.sun.cocktaildb.screen.authenticate.login
 
-import com.sun.cocktaildb.data.repository.AuthRepository
 import com.sun.cocktaildb.data.repository.impl.FirebaseAuthImplement
+import com.sun.cocktaildb.data.repository.remote.AuthRepository
 
 class LoginPresenter(
     private val authRepository: AuthRepository = FirebaseAuthImplement(),

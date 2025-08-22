@@ -4,14 +4,13 @@ import android.content.ContentValues.TAG
 import android.util.Log
 import com.sun.cocktaildb.data.model.Category
 import com.sun.cocktaildb.data.model.Cocktail
-import com.sun.cocktaildb.data.repository.CocktailRepository
+import com.sun.cocktaildb.data.repository.remote.CocktailRepository
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.concurrent.TimeUnit
 
 class CocktailRepositoryImpl : CocktailRepository {
     private val baseUrl = "https://www.thecocktaildb.com/api/json/v1/1/"
@@ -127,63 +126,7 @@ class CocktailRepositoryImpl : CocktailRepository {
             }
             return result
         } catch (e: Exception) {
-            // Fallback to mock data if API fails
-            return listOf(
-                Cocktail(
-                    id = "1",
-                    name = "Margarita",
-                    description = "Classic tequila cocktail • Category: Ordinary Drink • Type: Alcoholic • Glass: Cocktail glass",
-                    imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
-                    ingredients = listOf("1 1/2 oz Tequila", "1/2 oz Triple sec", "1 oz Lime juice", "Salt"),
-                    instructions = "Rub the rim of the glass with the lime slice to make the salt stick to it...",
-                    category = "Ordinary Drink",
-                ),
-                Cocktail(
-                    id = "2",
-                    name = "Mojito",
-                    description = "Refreshing mint cocktail • Category: Cocktail • Type: Alcoholic • Glass: Highball glass",
-                    imageUrl = "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg",
-                    ingredients = listOf("2-3 oz White rum", "2 tbsp Fresh lime juice", "2-4 mint sprigs", "2 tsp Sugar"),
-                    instructions = "Muddle mint leaves with sugar and lime juice...",
-                    category = "Cocktail",
-                ),
-                Cocktail(
-                    id = "3",
-                    name = "Martini",
-                    description = "Elegant gin cocktail • Category: Cocktail • Type: Alcoholic • Glass: Cocktail glass",
-                    imageUrl = "https://www.thecocktaildb.com/images/media/drink/71t8581504353095.jpg",
-                    ingredients = listOf("1 2/3 oz Gin", "1/3 oz Dry Vermouth", "1 Olive"),
-                    instructions = "Stir all ingredients with ice...",
-                    category = "Cocktail",
-                ),
-                Cocktail(
-                    id = "4",
-                    name = "Manhattan",
-                    description = "Classic whiskey cocktail • Category: Cocktail • Type: Alcoholic • Glass: Cocktail glass",
-                    imageUrl = "https://www.thecocktaildb.com/images/media/drink/4qxyty1434360738.jpg",
-                    ingredients = listOf("2 oz Rye whiskey", "1 oz Sweet vermouth", "2 dashes Angostura bitters"),
-                    instructions = "Stir all ingredients with ice...",
-                    category = "Cocktail",
-                ),
-                Cocktail(
-                    id = "5",
-                    name = "Moscow Mule",
-                    description = "Refreshing vodka cocktail • Category: Cocktail • Type: Alcoholic • Glass: Copper mug",
-                    imageUrl = "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
-                    ingredients = listOf("2 oz Vodka", "1/2 oz Lime juice", "3 oz Ginger beer", "Lime wedge"),
-                    instructions = "Combine vodka and lime juice in a copper mug...",
-                    category = "Cocktail",
-                ),
-                Cocktail(
-                    id = "6",
-                    name = "Mai Tai",
-                    description = "Tropical rum cocktail • Category: Cocktail • Type: Alcoholic • Glass: Old-fashioned glass",
-                    imageUrl = "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg",
-                    ingredients = listOf("1 1/2 oz White rum", "1/2 oz Dark rum", "1/2 oz Orange curaçao", "1/2 oz Orgeat syrup"),
-                    instructions = "Shake all ingredients with ice...",
-                    category = "Cocktail",
-                ),
-            )
+            return emptyList()
         }
     }
 
@@ -258,18 +201,7 @@ class CocktailRepositoryImpl : CocktailRepository {
             }
             return result
         } catch (e: Exception) {
-            // Fallback to mock data if API fails
-            return listOf(
-                Cocktail(
-                    id = "1",
-                    name = "Sample Cocktail",
-                    description = "A delicious sample cocktail from $categoryId",
-                    imageUrl = "https://example.com/sample.jpg",
-                    ingredients = listOf("Sample ingredient 1", "Sample ingredient 2"),
-                    instructions = "Sample instructions",
-                    category = categoryId,
-                ),
-            )
+            return emptyList()
         }
     }
 

@@ -1,4 +1,4 @@
-package com.sun.cocktaildb.data.repository
+package com.sun.cocktaildb.data.repository.remote
 
 import com.sun.cocktaildb.data.model.Category
 import com.sun.cocktaildb.data.model.Cocktail
@@ -17,21 +17,21 @@ interface CocktailRepository {
     fun toggleFavorite(cocktailId: String): Boolean
 
     fun getFavoriteCocktails(): List<Cocktail>
-    
+
     // New search methods
     fun searchCocktailsByName(query: String): List<Cocktail>
-    
+
     fun searchCocktailsByFirstLetter(letter: String): List<Cocktail>
-    
+
     fun searchCocktailsByIngredient(ingredient: String): List<Cocktail>
-    
+
     fun filterCocktailsByAlcoholic(isAlcoholic: Boolean): List<Cocktail>
-    
+
     fun filterCocktailsByCategory(category: String): List<Cocktail>
-    
+
     fun getAlcoholicFilters(): List<String>
-    
+
     fun getGlassTypes(): List<String>
-    
+
     fun getIngredientsList(): List<String>
 }

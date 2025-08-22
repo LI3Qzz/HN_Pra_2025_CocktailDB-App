@@ -4,7 +4,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.sun.cocktaildb.data.model.User
-import com.sun.cocktaildb.data.repository.AuthRepository
+import com.sun.cocktaildb.data.repository.remote.AuthRepository
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
