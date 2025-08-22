@@ -62,6 +62,19 @@ class CategoryDetailPresenter(
         isFavorite: Boolean,
     ) {
         view?.onFavoriteClicked(cocktail, isFavorite)
+        executor.execute {
+            try {
+                if (isFavorite) {
+                    cocktailRepository.addFavourite(cocktail.id)
+                } else {
+                    cocktailRepository.removeFavourite(cocktail.id)
+                }
+            } catch (e: Exception) {
+                mainHandler.post {
+                    view?.showError("Error updating favorite: ${e.message ?: "Unknown error"}")
+                }
+            }
+        }
     }
 
     fun onBackClicked() {

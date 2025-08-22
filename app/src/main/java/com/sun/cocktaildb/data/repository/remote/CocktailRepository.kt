@@ -34,4 +34,10 @@ interface CocktailRepository {
     fun getGlassTypes(): List<String>
 
     fun getIngredientsList(): List<String>
+
+    fun addFavourite(cocktailId: String)
+
+    fun removeFavourite(cocktailId: String)
+
+    fun getFavouriteCocktails(callback: (Result<List<Cocktail>>) -> Unit)
 }

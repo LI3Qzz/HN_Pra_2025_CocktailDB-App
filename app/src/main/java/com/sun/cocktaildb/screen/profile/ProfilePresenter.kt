@@ -1,8 +1,8 @@
 package com.sun.cocktaildb.screen.profile
 
 import com.sun.cocktaildb.data.model.User
-import com.sun.cocktaildb.data.repository.AuthRepository
 import com.sun.cocktaildb.data.repository.UserRepository
+import com.sun.cocktaildb.data.repository.remote.AuthRepository
 import com.sun.cocktaildb.utils.base.BasePresenter
 
 /**
@@ -113,4 +113,4 @@ class ProfilePresenter(
     override fun setView(view: ProfileView?) {
         this.view = view
     }
-} 
+}

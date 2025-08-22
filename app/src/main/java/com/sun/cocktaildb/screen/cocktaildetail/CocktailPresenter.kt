@@ -1,7 +1,7 @@
 package com.sun.cocktaildb.screen.cocktaildetail
 
 import com.sun.cocktaildb.data.model.Cocktail
-import com.sun.cocktaildb.data.repository.CocktailRepository
+import com.sun.cocktaildb.data.repository.remote.CocktailRepository
 import com.sun.cocktaildb.utils.FavoriteManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

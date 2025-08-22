@@ -2,6 +2,7 @@ package com.sun.cocktaildb.data.repository.impl
 
 import android.content.ContentValues.TAG
 import android.util.Log
+import com.google.firebase.firestore.FirebaseFirestore
 import com.sun.cocktaildb.data.model.Category
 import com.sun.cocktaildb.data.model.Cocktail
 import com.sun.cocktaildb.data.repository.remote.CocktailRepository
@@ -12,7 +13,9 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
-class CocktailRepositoryImpl : CocktailRepository {
+class CocktailRepositoryImpl constructor(
+    private val firebase: FirebaseAuthImplement = FirebaseAuthImplement(),
+) : CocktailRepository {
     private val baseUrl = "https://www.thecocktaildb.com/api/json/v1/1/"
 
     override fun getCategories(): List<Category> {
@@ -726,6 +729,112 @@ class CocktailRepositoryImpl : CocktailRepository {
                 "Coffee",
                 "Milk",
             )
+        }
+    }
+
+    override fun addFavourite(cocktailId: String) {
+        val currentUser = firebase.getCurrentUser()
+        if (currentUser == null) {
+            Log.w(TAG, "addFavourite: no current user")
+            return
+        }
+
+        val firestore = FirebaseFirestore.getInstance()
+        val favouritesRef = firestore.collection("favourite")
+
+        favouritesRef
+            .whereEqualTo("userID", currentUser.uid)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                if (querySnapshot.isEmpty) {
+                    // Create new favourites doc for this user
+                    val data = hashMapOf(
+                        "userID" to currentUser.uid,
+                        "cocktails" to listOf(cocktailId),
+                    )
+                    favouritesRef
+                        .add(data)
+                        .addOnSuccessListener { Log.d(TAG, "addFavourite: created favourites doc and added $cocktailId") }
+                        .addOnFailureListener { e -> Log.e(TAG, "addFavourite: failed to create doc", e) }
+                } else {
+                    // Update existing doc
+                    val doc = querySnapshot.documents.first()
+                    val currentList = (doc.get("cocktails") as? List<String>).orEmpty()
+                    if (!currentList.contains(cocktailId)) {
+                        val updated = currentList + cocktailId
+                        favouritesRef
+                            .document(doc.id)
+                            .update("cocktails", updated)
+                            .addOnSuccessListener { Log.d(TAG, "addFavourite: added $cocktailId to existing list") }
+                            .addOnFailureListener { e -> Log.e(TAG, "addFavourite: failed to update list", e) }
+                    } else {
+                        Log.d(TAG, "addFavourite: cocktail already in favourites")
+                    }
+                }
+            }
+            .addOnFailureListener { e -> Log.e(TAG, "addFavourite: query failed", e) }
+    }
+
+    override fun removeFavourite(cocktailId: String) {
+        val currentUser = firebase.getCurrentUser()
+        if (currentUser == null) {
+            Log.w(TAG, "removeFavourite: no current user")
+            return
+        }
+
+        val firestore = FirebaseFirestore.getInstance()
+        val favouritesRef = firestore.collection("favourite")
+
+        favouritesRef
+            .whereEqualTo("userID", currentUser.uid)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                if (querySnapshot.isEmpty) {
+                    Log.d(TAG, "removeFavourite: no favourites doc for user")
+                } else {
+                    val doc = querySnapshot.documents.first()
+                    val currentList = (doc.get("cocktails") as? List<String>).orEmpty()
+                    if (currentList.contains(cocktailId)) {
+                        val updated = currentList.filter { it != cocktailId }
+                        favouritesRef
+                            .document(doc.id)
+                            .update("cocktails", updated)
+                            .addOnSuccessListener { Log.d(TAG, "removeFavourite: removed $cocktailId from favourites") }
+                            .addOnFailureListener { e -> Log.e(TAG, "removeFavourite: failed to update list", e) }
+                    } else {
+                        Log.d(TAG, "removeFavourite: cocktail not in favourites")
+                    }
+                }
+            }
+            .addOnFailureListener { e -> Log.e(TAG, "removeFavourite: query failed", e) }
+    }
+
+    override fun getFavouriteCocktails(callback: (Result<List<Cocktail>>) -> Unit) {
+        firebase.getCurrentUserFavouriteCocktails { result ->
+            if (result.isFailure) {
+                callback(Result.failure(result.exceptionOrNull() ?: Exception("Unknown error")))
+                return@getCurrentUserFavouriteCocktails
+            }
+
+            val ids = result.getOrNull().orEmpty()
+            if (ids.isEmpty()) {
+                callback(Result.success(emptyList()))
+                return@getCurrentUserFavouriteCocktails
+            }
+
+            // Fetch cocktail details off the main thread
+            java.util.concurrent.Executors.newSingleThreadExecutor().execute {
+                val cocktails = mutableListOf<Cocktail>()
+                for (id in ids) {
+                    try {
+                        val cocktail = getCocktailById(id)
+                        if (cocktail != null) cocktails.add(cocktail)
+                    } catch (e: Exception) {
+                        Log.w(TAG, "getFavouriteCocktails: failed to fetch cocktail $id", e)
+                    }
+                }
+                callback(Result.success(cocktails))
+            }
         }
     }
 

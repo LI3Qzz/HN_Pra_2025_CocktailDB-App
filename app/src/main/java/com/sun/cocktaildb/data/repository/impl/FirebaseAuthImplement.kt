@@ -97,4 +97,30 @@ class FirebaseAuthImplement(
                 callback(Result.failure(exception))
             }
     }
+
+    fun getCurrentUserFavouriteCocktails(callback: (Result<List<String>?>) -> Unit) {
+        val currentUser = getCurrentUser()
+        if (currentUser == null) {
+            callback(Result.failure(Exception("User not found")))
+        } else {
+            executor.execute {
+                firestore
+                    .collection("favourite")
+                    .whereEqualTo("userID", currentUser.uid)
+                    .get()
+                    .addOnSuccessListener {
+                        callback(
+                            Result.success(
+                                it.documents
+                                    .map { item ->
+                                        item.get("cocktails") as List<String>
+                                    }.firstOrNull(),
+                            ),
+                        )
+                    }.addOnFailureListener {
+                        callback(Result.failure(it))
+                    }
+            }
+        }
+    }
 }

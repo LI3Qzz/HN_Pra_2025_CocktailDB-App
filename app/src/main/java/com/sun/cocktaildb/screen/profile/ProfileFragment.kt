@@ -12,10 +12,10 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.sun.cocktaildb.R
 import com.sun.cocktaildb.data.model.User
-import com.sun.cocktaildb.data.repository.AuthRepository
 import com.sun.cocktaildb.data.repository.UserRepository
 import com.sun.cocktaildb.data.repository.impl.FirebaseAuthImplement
 import com.sun.cocktaildb.data.repository.impl.UserRepositoryImpl
+import com.sun.cocktaildb.data.repository.remote.AuthRepository
 import com.sun.cocktaildb.databinding.FragmentProfileBinding
 import com.sun.cocktaildb.screen.authenticate.login.LoginActivity
 import com.sun.cocktaildb.utils.base.BaseFragment
