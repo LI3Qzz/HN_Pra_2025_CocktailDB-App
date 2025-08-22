@@ -79,7 +79,6 @@ class CocktailActivity :
 
         // Top share button (in image overlay)
         binding.ivShare.setOnClickListener {
-            // This will be updated when cocktail is loaded
         }
     }
 
