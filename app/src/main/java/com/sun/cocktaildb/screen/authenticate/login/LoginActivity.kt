@@ -61,7 +61,7 @@ class LoginActivity :
 
     override fun showLoading() {
         binding?.btnLogin?.isEnabled = false
-        binding?.btnLogin?.text = "Logging in..."
+        binding?.btnLogin?.text = getString(R.string.logging_in)
     }
 
     override fun hideLoading() {
@@ -74,7 +74,7 @@ class LoginActivity :
     }
 
     override fun showSuccess() {
-        Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.login_successful), Toast.LENGTH_SHORT).show()
     }
 
     override fun navigateToMain() {
@@ -102,12 +102,12 @@ class LoginActivity :
         val password = getPassword()
 
         if (email.isEmpty()) {
-            showError("Email is required")
+            showError(getString(R.string.email_required))
             return false
         }
 
         if (password.isEmpty()) {
-            showError("Password is required")
+            showError(getString(R.string.password_required))
             return false
         }
         return true

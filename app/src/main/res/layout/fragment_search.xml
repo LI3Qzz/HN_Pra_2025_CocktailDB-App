@@ -12,7 +12,7 @@
         android:id="@+id/tv_search_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Search"
+        android:text="@string/title_search"
         android:textColor="@color/black"
         android:textSize="@dimen/text_size_large"
         android:textStyle="bold"
@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@null"
-            android:hint="Search here"
+            android:hint="@string/search_here"
             android:inputType="text"
             android:maxLines="1"
             android:textColor="@color/black"
@@ -66,12 +66,12 @@
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Name" />
+            android:text="@string/name" />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Ingredient" />
+            android:text="@string/ingredient" />
 
     </com.google.android.material.tabs.TabLayout>
 
@@ -94,7 +94,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Type:"
+                android:text="@string/type_label"
                 android:textColor="@color/black"
                 android:textSize="@dimen/sp_14"
                 android:textStyle="bold"
@@ -121,11 +121,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ingredients:"
+                android:text="@string/ingredients_colon"
                 android:textColor="@color/black"
-                android:textSize="14sp"
+                android:textSize="@dimen/sp_14"
                 android:textStyle="bold"
-                android:layout_marginEnd="8dp" />
+                android:layout_marginEnd="@dimen/dp_8" />
 
             <Spinner
                 android:id="@+id/ingredient_filter_spinner"

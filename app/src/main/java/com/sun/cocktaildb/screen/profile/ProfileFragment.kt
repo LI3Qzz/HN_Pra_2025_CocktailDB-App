@@ -17,7 +17,7 @@ class ProfileFragment : BaseFragment() {
         savedInstanceState: Bundle?
     ): View {
         return TextView(context).apply {
-            text = "Profile Fragment - Triển khai sau"
+            text = getString(R.string.profile_fragment_placeholder)
             textSize = 18f
             setTextColor(resources.getColor(R.color.black, null))
             gravity = android.view.Gravity.CENTER

@@ -103,7 +103,7 @@ class CategoryDetailActivity : BaseActivity(), CategoryDetailView {
     }
 
     override fun onCocktailClicked(cocktail: Cocktail) {
-        Toast.makeText(this, "Cocktail clicked: ${cocktail.name}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.clicked_item, cocktail.name), Toast.LENGTH_SHORT).show()
         // Navigate to cocktail detail
     }
     

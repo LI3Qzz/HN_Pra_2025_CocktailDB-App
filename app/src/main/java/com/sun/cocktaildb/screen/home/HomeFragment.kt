@@ -78,7 +78,11 @@ class HomeFragment :
 
     override fun onResume() {
         super.onResume()
-        presenter.onStart()
+        if (!::categoryAdapter.isInitialized || categoryAdapter.itemCount == 0 ||
+            !::popularCocktailAdapter.isInitialized || popularCocktailAdapter.itemCount == 0
+        ) {
+            presenter.onStart()
+        }
     }
 
     override fun onPause() {
@@ -93,12 +97,10 @@ class HomeFragment :
     // HomeView implementations
     override fun showCategories(categories: List<Category>) {
         categoryAdapter.updateCategories(categories)
-        println("DEBUG: Loaded ${categories.size} categories")
     }
 
     override fun showPopularCocktails(cocktails: List<Cocktail>) {
         popularCocktailAdapter.updateCocktails(cocktails)
-        println("DEBUG: Loaded ${cocktails.size} popular cocktails")
     }
 
     override fun showLoading() {
@@ -111,13 +113,12 @@ class HomeFragment :
 
     override fun showError(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-        println("DEBUG: Error: $message")
     }
 
     override fun onCategoryClicked(category: Category) {
         val intent = CategoryDetailActivity.newIntent(requireContext(), category)
         startActivity(intent)
-        Toast.makeText(context, "Navigate to CategoryScreen for: ${category.name}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, getString(R.string.navigate_to_category_screen, category.name), Toast.LENGTH_SHORT).show()
     }
 
     override fun onCocktailClicked(cocktail: Cocktail) {

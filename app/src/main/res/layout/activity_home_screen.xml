@@ -8,21 +8,21 @@
     <LinearLayout
         android:id="@+id/header_section"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_150"
+        android:layout_height="@dimen/dp_140"
         android:background="@drawable/header_background_img"
         android:orientation="vertical"
+        android:padding="24dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/tv_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="@dimen/dp_16"
+            android:layout_marginTop="@dimen/dp_40"
             android:fontFamily="@font/aclonica"
             android:text="@string/cocktaildb"
-            android:textColor="@color/white"
-            android:textSize="@dimen/sp_24"
+            android:textColor="@color/black"
+            android:textSize="24sp"
             android:textStyle="bold" />
 
     </LinearLayout>
