@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
 import com.sun.cocktaildb.R
 import com.sun.cocktaildb.data.model.Cocktail
@@ -17,13 +17,9 @@ import com.sun.cocktaildb.databinding.FragmentSearchBinding
 import com.sun.cocktaildb.screen.cocktaildetail.CocktailActivity
 import com.sun.cocktaildb.screen.search.adapter.HistoryAdapter
 import com.sun.cocktaildb.screen.search.adapter.SearchAdapter
-import com.sun.cocktaildb.utils.FavoriteManager
 import com.sun.cocktaildb.utils.FavoriteSyncManager
 import com.sun.cocktaildb.utils.base.BaseFragment
 import com.sun.cocktaildb.utils.dialog.LoadingDialog
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteUpdateListener {
     private val binding: FragmentSearchBinding by lazy {
@@ -32,7 +28,6 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
     private lateinit var presenter: SearchPresenter
     private lateinit var searchAdapter: SearchAdapter
     private lateinit var historyAdapter: HistoryAdapter
-    private val repository = CocktailRepositoryImpl()
 
     private val loadingDialog by lazy {
         LoadingDialog(this@SearchFragment.requireActivity())
@@ -50,7 +45,7 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
         setupSearchInput()
         setupSearchTabs()
         setupQuickFilters()
-        // Register for favorite updates
+        setupSearchButton()
         FavoriteSyncManager.registerListener(this)
     }
 
@@ -71,8 +66,9 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
             }
         )
         binding.rvSearchResults.apply {
-            layoutManager = GridLayoutManager(context, 2)
+            layoutManager = LinearLayoutManager(context)
             adapter = searchAdapter
+            setHasFixedSize(false)
         }
 
         // Setup History RecyclerView
@@ -86,7 +82,7 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
             }
         )
         binding.rvSearchHistory.apply {
-            layoutManager = GridLayoutManager(context, 2)
+            layoutManager = LinearLayoutManager(context)
             adapter = historyAdapter
         }
     }
@@ -104,41 +100,35 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
                 }
             }
         })
-
-        binding.btnSearch.setOnClickListener {
-            val query = binding.etSearch.text.toString().trim()
-            if (query.isNotEmpty()) {
-                presenter.searchCocktails(query, presenter.getCurrentSearchType())
-            } else {
-                Toast.makeText(context, getString(R.string.enter_search_query), Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     private fun setupSearchTabs() {
-        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                when (tab?.position) {
-                    0 -> {
-                        presenter.setSearchType(SearchType.NAME)
-                        binding.etSearch.hint = getString(R.string.search_hint_name)
-                        showAlcoholicFilterOnly()
-                        presenter.clearSearchResults()
-                        showSearchHistory()
-                    }
-                    1 -> {
-                        presenter.setSearchType(SearchType.INGREDIENT)
-                        binding.etSearch.hint = getString(R.string.search_hint_ingredient)
-                        showIngredientFilterOnly()
-                        presenter.clearSearchResults()
-                        showSearchHistory()
+        binding.tabLayout.addOnTabSelectedListener(
+            object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab?) {
+                    when (tab?.position) {
+                        0 -> {
+                            presenter.setSearchType(SearchType.NAME)
+                            binding.etSearch.hint = getString(R.string.search_hint_name)
+                            showAlcoholicFilterOnly()
+                            presenter.clearSearchResults()
+                            showSearchHistory()
+                        }
+                        1 -> {
+                            presenter.setSearchType(SearchType.INGREDIENT)
+                            binding.etSearch.hint = getString(R.string.search_hint_ingredient)
+                            showIngredientFilterOnly()
+                            presenter.clearSearchResults()
+                            showSearchHistory()
+                        }
                     }
                 }
-            }
 
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
-        })
+                override fun onTabUnselected(tab: TabLayout.Tab?) {}
+
+                override fun onTabReselected(tab: TabLayout.Tab?) {}
+            },
+        )
     }
 
     private fun setupQuickFilters() {
@@ -198,19 +188,26 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
         binding.ingredientFilterSpinner.visibility = View.VISIBLE
     }
 
+    private fun setupSearchButton() {
+        binding.btnSearch.setOnClickListener {
+            val query = binding.etSearch.text.toString().trim()
+            if (query.isNotEmpty()) {
+                presenter.searchCocktails(query, presenter.getCurrentSearchType())
+            } else {
+                Toast.makeText(context, getString(R.string.enter_search_query), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
-        // Show history when returning to fragment
         showSearchHistory()
-        // Refresh favorite status when returning from detail screen
         refreshFavoriteStatusFromDetailScreen()
     }
 
     private fun refreshFavoriteStatusFromDetailScreen() {
-        // If there are search results, refresh their favorite status
         val currentCocktails = searchAdapter.getCurrentCocktails()
         if (currentCocktails.isNotEmpty()) {
-            // Update favorite status for each cocktail based on FavoriteSyncManager
             currentCocktails.forEach { cocktail ->
                 val isFavorite = FavoriteSyncManager.isFavorite(cocktail.id)
                 searchAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
@@ -220,26 +217,21 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Unregister from favorite updates
         FavoriteSyncManager.unregisterListener(this)
     }
 
     // FavoriteSyncManager.FavoriteUpdateListener implementations
     override fun onFavoriteUpdated(cocktailId: String, isFavorite: Boolean) {
-        // Update the specific cocktail's favorite status in the adapter
         searchAdapter.updateCocktailFavoriteStatus(cocktailId, isFavorite)
     }
 
     override fun onFavoritesRefreshed() {
-        // Refresh all search results with current favorite status
         refreshSearchResultsFromOtherScreens()
     }
 
     private fun refreshSearchResultsFromOtherScreens() {
-        // Get current search results and update their favorite status
         val currentCocktails = searchAdapter.getCurrentCocktails()
         if (currentCocktails.isNotEmpty()) {
-            // Update favorite status for each cocktail based on FavoriteSyncManager
             currentCocktails.forEach { cocktail ->
                 val isFavorite = FavoriteSyncManager.isFavorite(cocktail.id)
                 searchAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
@@ -289,7 +281,6 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
 
-    // Additional SearchView implementations
     override fun onCocktailClicked(cocktail: Cocktail) {
         val intent = CocktailActivity.newIntent(requireContext(), cocktail.id)
         startActivity(intent)
@@ -297,6 +288,17 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
 
     override fun removeFromHistory(historyItem: String) {
         presenter.removeFromHistory(historyItem)
+    }
+
+    // Favorite functionality - KEPT FROM PREVIOUS IMPLEMENTATION
+    private fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
+        if (isFavorite) {
+            Toast.makeText(context, getString(R.string.removed_from_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, getString(R.string.added_to_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
+        }
+        searchAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
+        FavoriteSyncManager.updateFavorite(cocktail, isFavorite)
     }
 
     override fun showAlcoholicFilters(filters: List<String>) {
@@ -328,24 +330,5 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
         if (history.isNotEmpty()) {
             showHistory(history)
         }
-    }
-
-    private fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
-        // Show toast message for user feedback
-        if (isFavorite) {
-            Toast.makeText(context, getString(R.string.added_to_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, getString(R.string.removed_from_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
-        }
-
-        // Update the cocktail favorite status in the adapter immediately for UI responsiveness
-        searchAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
-
-        // Use FavoriteSyncManager to update and notify all screens
-        // This will:
-        // 1. Update local FavoriteManager
-        // 2. Save to Firebase
-        // 3. Notify Home, Favorite, and Detail screens
-        FavoriteSyncManager.updateFavorite(cocktail, isFavorite)
     }
 }

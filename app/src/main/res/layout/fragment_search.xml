@@ -150,7 +150,7 @@
 
     </LinearLayout>
 
-    <!-- Search Results -->
+    <!-- Search History -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_search_history"
         android:layout_width="match_parent"
@@ -170,8 +170,6 @@
         android:scrollbars="vertical"
         android:visibility="gone"
         tools:listitem="@layout/item_search_cocktail" />
-
-
 
     <!-- No Results Message -->
     <LinearLayout
