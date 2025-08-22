@@ -102,11 +102,38 @@ class SearchPresenter(
                 // Apply filters if selected
                 results = applyFilters(results)
                 
-                // Update favorite status for all cocktails
-                val updatedResults = results.map { cocktail ->
-                    cocktail.copy(isFavorite = FavoriteManager.isFavorite(cocktail.id))
+                // Load favorite status from Firebase and update results
+                loadFavoriteStatusAndUpdateResults(results)
+            } catch (e: Exception) {
+                mainHandler.post {
+                    view?.hideLoading()
+                    view?.showError("Search failed: ${e.message}")
                 }
-				
+            }
+        }
+    }
+
+    private fun loadFavoriteStatusAndUpdateResults(results: List<Cocktail>) {
+        // Get favorite IDs from Firebase
+        cocktailRepository.getFavouriteCocktails { result ->
+            if (result.isSuccess) {
+                val favoriteIds = result.getOrNull()?.map { it.id } ?: emptyList()
+                
+                // Update cocktails with favorite status from Firebase
+                val updatedResults = results.map { cocktail ->
+                    val isFavorite = favoriteIds.contains(cocktail.id)
+                    cocktail.copy(isFavorite = isFavorite)
+                }
+                
+                // Update local FavoriteManager for consistency
+                updatedResults.forEach { cocktail ->
+                    if (cocktail.isFavorite) {
+                        FavoriteManager.addToFavorites(cocktail)
+                    } else {
+                        FavoriteManager.removeFromFavorites(cocktail)
+                    }
+                }
+                
                 mainHandler.post {
                     view?.hideLoading()
                     if (updatedResults.isNotEmpty()) {
@@ -115,10 +142,19 @@ class SearchPresenter(
                         view?.showNoResults()
                     }
                 }
-            } catch (e: Exception) {
+            } else {
+                // Fallback to local FavoriteManager if Firebase fails
+                val updatedResults = results.map { cocktail ->
+                    cocktail.copy(isFavorite = FavoriteManager.isFavorite(cocktail.id))
+                }
+                
                 mainHandler.post {
                     view?.hideLoading()
-                    view?.showError("Search failed: ${e.message}")
+                    if (updatedResults.isNotEmpty()) {
+                        view?.showSearchResults(updatedResults)
+                    } else {
+                        view?.showNoResults()
+                    }
                 }
             }
         }
@@ -172,7 +208,6 @@ class SearchPresenter(
 
     // Get search history
     fun getSearchHistory(): List<String> = searchHistory.toList()
-
 
 
     // Apply filters to cocktail list

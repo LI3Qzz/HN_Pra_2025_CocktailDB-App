@@ -12,12 +12,25 @@ import com.sun.cocktaildb.utils.ImageLoader
 import com.sun.cocktaildb.utils.Constants
 
 class SearchAdapter(
-    private val onCocktailClicked: (Cocktail) -> Unit,
+    private val onCocktailClickListener: (Cocktail) -> Unit,
     private val onFavoriteClickListener: (Cocktail, Boolean) -> Unit
 ) : RecyclerView.Adapter<SearchAdapter.SearchViewHolder>() {
 
     private var cocktails: MutableList<Cocktail> = mutableListOf()
     private var currentSearchQuery: String = ""
+
+    fun updateCocktailFavoriteStatus(cocktailId: String, isFavorite: Boolean) {
+        val index = cocktails.indexOfFirst { it.id == cocktailId }
+        if (index != -1) {
+            val updatedCocktail = cocktails[index].copy(isFavorite = isFavorite)
+            cocktails[index] = updatedCocktail
+            notifyItemChanged(index)
+        }
+    }
+    
+    fun getCurrentCocktails(): List<Cocktail> {
+        return cocktails.toList()
+    }
 
     fun updateCocktails(newCocktails: List<Cocktail>, searchQuery: String = "") {
         cocktails.clear()
@@ -26,13 +39,10 @@ class SearchAdapter(
         notifyDataSetChanged()
     }
     
-    fun updateCocktailFavoriteStatus(cocktailId: String, isFavorite: Boolean) {
-        val index = cocktails.indexOfFirst { it.id == cocktailId }
-        if (index != -1) {
-            val updatedCocktail = cocktails[index].copy(isFavorite = isFavorite)
-            cocktails[index] = updatedCocktail
-            notifyItemChanged(index)
-        }
+    fun updateCocktails(newCocktails: List<Cocktail>) {
+        cocktails.clear()
+        cocktails.addAll(newCocktails)
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchViewHolder {
@@ -58,7 +68,7 @@ class SearchAdapter(
             binding.root.setOnClickListener {
                 val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    onCocktailClicked(cocktails[position])
+                    onCocktailClickListener(cocktails[position])
                 }
             }
             
