@@ -13,7 +13,6 @@ import com.sun.cocktaildb.data.repository.impl.CocktailRepositoryImpl
  */
 class SearchFragmentManager(
     private val context: Context,
-    private val onSearchStarted: () -> Unit,
     private val onSearchResults: (List<Cocktail>) -> Unit,
     private val onNoResults: () -> Unit,
     private val onError: (String) -> Unit
@@ -34,7 +33,7 @@ class SearchFragmentManager(
                 }
                 
                 override fun showLoading() {
-                    onSearchStarted()
+                    // Loading will be handled by fragment
                 }
                 
                 override fun hideLoading() {
@@ -164,7 +163,6 @@ class SearchFragmentManager(
     // Search cocktails
     fun searchCocktails(query: String, searchType: SearchType) {
         if (::searchPresenter.isInitialized) {
-            onSearchStarted()
             searchPresenter.searchCocktails(query, searchType)
         }
     }
@@ -196,13 +194,6 @@ class SearchFragmentManager(
     fun removeFromHistory(query: String) {
         if (::searchPresenter.isInitialized) {
             searchPresenter.removeFromHistory(query)
-        }
-    }
-    
-    // Add query to search history
-    fun addToHistory(query: String) {
-        if (::searchPresenter.isInitialized) {
-            searchPresenter.addToHistory(query)
         }
     }
 }

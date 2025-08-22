@@ -5,7 +5,6 @@ import android.os.Looper
 import com.sun.cocktaildb.data.model.Category
 import com.sun.cocktaildb.data.model.Cocktail
 import com.sun.cocktaildb.data.repository.remote.CocktailRepository
-import com.sun.cocktaildb.utils.Constants
 import com.sun.cocktaildb.utils.FavoriteManager
 import com.sun.cocktaildb.utils.base.BasePresenter
 import java.util.concurrent.Executors
@@ -45,7 +44,7 @@ class HomePresenter(
                 }
             } catch (e: Exception) {
                 mainHandler.post {
-                    view?.showError("${Constants.ERROR_LOADING_CATEGORIES}: ${e.message ?: Constants.UNKNOWN_ERROR}")
+                    view?.showError("Error loading categories: ${e.message ?: "Unknown error"}")
                 }
             }
         }
@@ -75,7 +74,7 @@ class HomePresenter(
                 }
             } catch (e: Exception) {
                 mainHandler.post {
-                    view?.showError("${Constants.ERROR_LOADING_POPULAR_COCKTAILS}: ${e.message ?: Constants.UNKNOWN_ERROR}")
+                    view?.showError("Error loading popular cocktails: ${e.message ?: "Unknown error"}")
                     view?.hideLoading()
                 }
             }
@@ -94,9 +93,28 @@ class HomePresenter(
         cocktail: Cocktail,
         isFavorite: Boolean,
     ) {
+
         // Use FavoriteSyncManager to handle all favorite operations
         // This will automatically update Firebase and notify all screens
         FavoriteSyncManager.updateFavorite(cocktail, isFavorite)
+
+        executor.execute {
+            try {
+                if (isFavorite) {
+                    cocktailRepository.addFavourite(cocktail.id)
+                } else {
+                    cocktailRepository.removeFavourite(cocktail.id)
+                }
+                
+                // Refresh popular cocktails to show updated favorite status
+                loadPopularCocktails()
+            } catch (e: Exception) {
+                mainHandler.post {
+                    view?.showError("Error updating favorite: ${e.message ?: "Unknown error"}")
+                }
+            }
+        }
+
     }
 
     fun onBottomNavigationItemSelected(itemId: Int) {
