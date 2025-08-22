@@ -2,14 +2,13 @@ package com.sun.cocktaildb.screen.cocktaildetail
 
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sun.cocktaildb.R
 import com.sun.cocktaildb.data.model.Cocktail
 import com.sun.cocktaildb.data.repository.impl.CocktailRepositoryImpl
 import com.sun.cocktaildb.databinding.ActivityDetailBinding
-import com.sun.cocktaildb.screen.cocktaildetail.adapter.IngredientsAdapter
+import com.sun.cocktaildb.screen.cocktaildetail.adapter.IngredientAdapter
 import com.sun.cocktaildb.utils.ImageLoader
 import com.sun.cocktaildb.utils.base.BaseActivity
 import com.sun.cocktaildb.utils.dialog.LoadingDialog
@@ -19,7 +18,7 @@ class CocktailActivity :
     CocktailContract.View {
     private lateinit var binding: ActivityDetailBinding
     private lateinit var presenter: CocktailPresenter
-    private lateinit var ingredientsAdapter: IngredientsAdapter
+    private lateinit var ingredientAdapter: IngredientAdapter
 
     private val loadingDialog by lazy {
         LoadingDialog(this)
@@ -60,10 +59,10 @@ class CocktailActivity :
     }
 
     private fun setupRecyclerView() {
-        ingredientsAdapter = IngredientsAdapter()
+        ingredientAdapter = IngredientAdapter()
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(this@CocktailActivity)
-            adapter = ingredientsAdapter
+            adapter = ingredientAdapter
         }
     }
 
@@ -113,7 +112,7 @@ class CocktailActivity :
             tvCocktailName.text = cocktail.name
 
             // Set ingredients
-            ingredientsAdapter.updateIngredients(
+            ingredientAdapter.updateIngredients(
                 cocktail.ingredients.filter {
                     !it.contains("null", ignoreCase = true)
                 },

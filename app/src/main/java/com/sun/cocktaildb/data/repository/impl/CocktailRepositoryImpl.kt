@@ -18,6 +18,49 @@ class CocktailRepositoryImpl constructor(
 ) : CocktailRepository {
     private val baseUrl = "https://www.thecocktaildb.com/api/json/v1/1/"
 
+    // Simple in-memory cache with TTL to speed up fast screen switches
+    private val cacheTtlMs = 60_000L
+    private val cocktailCacheById = mutableMapOf<String, Pair<Cocktail, Long>>()
+    private val listCache = mutableMapOf<String, Pair<List<Cocktail>, Long>>()
+
+    private fun nowMs(): Long = System.currentTimeMillis()
+
+    private fun <T> getFromCache(
+        map: MutableMap<String, Pair<T, Long>>,
+        key: String,
+    ): T? {
+        val entry = map[key] ?: return null
+        val (value, expiry) = entry
+        return if (nowMs() <= expiry) value else {
+            map.remove(key)
+            null
+        }
+    }
+
+    private fun <T> putIntoCache(
+        map: MutableMap<String, Pair<T, Long>>,
+        key: String,
+        value: T,
+    ) {
+        map[key] = value to (nowMs() + cacheTtlMs)
+    }
+
+    // Combine parallel ingredient and measure lists into display items.
+    private fun combineIngredientAndMeasure(
+        ingredients: List<String>,
+        measures: List<String>,
+    ): List<String> {
+        return ingredients.mapIndexed { index, ingredient ->
+            val measure = measures.getOrNull(index).orEmpty().trim()
+            val ingredientName = ingredient.trim()
+            if (measure.isNotEmpty()) {
+                "$ingredientName|||$measure"
+            } else {
+                ingredientName
+            }
+        }
+    }
+
     override fun getCategories(): List<Category> {
         try {
             val url = baseUrl + "list.php?c=list"
@@ -61,6 +104,7 @@ class CocktailRepositoryImpl constructor(
 
     override fun getPopularCocktails(): List<Cocktail> {
         try {
+            getFromCache(listCache, key = "popular")?.let { return it }
             // Use search by first letter 'M' to get some popular cocktails
             val url = baseUrl + "search.php?f=M"
             val json = fetchJson(url)
@@ -95,15 +139,8 @@ class CocktailRepositoryImpl constructor(
                         }
                     }
 
-                    // Combine ingredients with measures
-                    val ingredientsWithMeasures =
-                        if (ingredients.size == measures.size) {
-                            ingredients.mapIndexed { index, ingredient ->
-                                "${measures[index]} $ingredient".trim()
-                            }
-                        } else {
-                            ingredients
-                        }
+                    // Combine ingredients with measures (ingredient first)
+                    val ingredientsWithMeasures = combineIngredientAndMeasure(ingredients, measures)
 
                     val description =
                         buildString {
@@ -127,6 +164,7 @@ class CocktailRepositoryImpl constructor(
                     )
                 }
             }
+            putIntoCache(listCache, key = "popular", result)
             return result
         } catch (e: Exception) {
             return emptyList()
@@ -135,6 +173,8 @@ class CocktailRepositoryImpl constructor(
 
     override fun getCocktailsByCategory(categoryId: String): List<Cocktail> {
         try {
+            val cacheKey = "category:$categoryId"
+            getFromCache(listCache, cacheKey)?.let { return it }
             // Treat categoryId as the category name since API uses names
             val encoded = categoryId.replace(' ', '_')
             val url = baseUrl + "filter.php?c=$encoded"
@@ -171,15 +211,8 @@ class CocktailRepositoryImpl constructor(
                         }
                     }
 
-                    // Combine ingredients with measures
-                    val ingredientsWithMeasures =
-                        if (ingredients.size == measures.size) {
-                            ingredients.mapIndexed { index, ingredient ->
-                                "${measures[index]} $ingredient".trim()
-                            }
-                        } else {
-                            ingredients
-                        }
+                    // Combine ingredients with measures (ingredient first)
+                    val ingredientsWithMeasures = combineIngredientAndMeasure(ingredients, measures)
 
                     val description =
                         buildString {
@@ -202,6 +235,7 @@ class CocktailRepositoryImpl constructor(
                     )
                 }
             }
+            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             return emptyList()
@@ -210,6 +244,7 @@ class CocktailRepositoryImpl constructor(
 
     override fun getCocktailById(id: String): Cocktail? {
         try {
+            getFromCache(cocktailCacheById, id)?.let { return it }
             val url = baseUrl + "lookup.php?i=$id"
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
@@ -238,15 +273,8 @@ class CocktailRepositoryImpl constructor(
                 }
             }
 
-            // Combine ingredients with measures
-            val ingredientsWithMeasures =
-                if (ingredients.size == measures.size) {
-                    ingredients.mapIndexed { index, ingredient ->
-                        "${measures[index]} $ingredient".trim()
-                    }
-                } else {
-                    ingredients
-                }
+            // Combine ingredients with measures (ingredient first)
+            val ingredientsWithMeasures = combineIngredientAndMeasure(ingredients, measures)
 
             val description =
                 buildString {
@@ -265,7 +293,7 @@ class CocktailRepositoryImpl constructor(
                     }
                 }
 
-            return Cocktail(
+            val cocktail = Cocktail(
                 id = id,
                 name = name,
                 description = description.ifEmpty { "Delicious cocktail" },
@@ -274,6 +302,8 @@ class CocktailRepositoryImpl constructor(
                 instructions = instructions.ifEmpty { "Instructions not available" },
                 category = category.ifEmpty { "Unknown" },
             )
+            putIntoCache(cocktailCacheById, id, cocktail)
+            return cocktail
         } catch (e: Exception) {
             return null
         }
@@ -281,6 +311,8 @@ class CocktailRepositoryImpl constructor(
 
     override fun searchCocktails(query: String): List<Cocktail> {
         try {
+            val cacheKey = "search:q:${query.trim()}"
+            getFromCache(listCache, cacheKey)?.let { return it }
             val url = baseUrl + "search.php?s=" + query.trim()
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
@@ -323,6 +355,7 @@ class CocktailRepositoryImpl constructor(
                     }
                 }
             }
+            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             return emptyList()
@@ -332,6 +365,8 @@ class CocktailRepositoryImpl constructor(
     // New search methods implementation
     override fun searchCocktailsByName(query: String): List<Cocktail> {
         try {
+            val cacheKey = "search:name:${query.trim()}"
+            getFromCache(listCache, cacheKey)?.let { return it }
             val url = baseUrl + "search.php?s=" + query.trim()
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
@@ -373,6 +408,7 @@ class CocktailRepositoryImpl constructor(
                     }
                 }
             }
+            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             return emptyList()
@@ -381,6 +417,8 @@ class CocktailRepositoryImpl constructor(
 
     override fun searchCocktailsByFirstLetter(letter: String): List<Cocktail> {
         try {
+            val cacheKey = "search:first:${letter.uppercase().first()}"
+            getFromCache(listCache, cacheKey)?.let { return it }
             val url = baseUrl + "search.php?f=" + letter.uppercase().first()
             Log.d(TAG, "Searching cocktails with URL: $url")
 
@@ -428,15 +466,8 @@ class CocktailRepositoryImpl constructor(
                         }
                     }
 
-                    // Combine ingredients with measures
-                    val ingredientsWithMeasures =
-                        if (ingredients.size == measures.size) {
-                            ingredients.mapIndexed { index, ingredient ->
-                                "${measures[index]} $ingredient".trim()
-                            }
-                        } else {
-                            ingredients
-                        }
+                    // Combine ingredients with measures (ingredient first)
+                    val ingredientsWithMeasures = combineIngredientAndMeasure(ingredients, measures)
 
                     val description =
                         buildString {
@@ -469,6 +500,7 @@ class CocktailRepositoryImpl constructor(
                 return getFallbackCocktailsForLetter(letter)
             }
 
+            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             println("DEBUG: Error in searchCocktailsByFirstLetter: ${e.message}")
@@ -479,6 +511,8 @@ class CocktailRepositoryImpl constructor(
 
     override fun searchCocktailsByIngredient(ingredient: String): List<Cocktail> {
         try {
+            val cacheKey = "search:ing:${ingredient.trim()}"
+            getFromCache(listCache, cacheKey)?.let { return it }
             // For ingredient search, we need to use filter.php?i=ingredient
             val filterUrl = baseUrl + "filter.php?i=" + ingredient.trim()
             val filterJson = fetchJson(filterUrl)
@@ -516,6 +550,7 @@ class CocktailRepositoryImpl constructor(
                     }
                 }
             }
+            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             return emptyList()
@@ -525,6 +560,8 @@ class CocktailRepositoryImpl constructor(
     override fun filterCocktailsByAlcoholic(isAlcoholic: Boolean): List<Cocktail> {
         try {
             val filterType = if (isAlcoholic) "Alcoholic" else "Non_Alcoholic"
+            val cacheKey = "filter:alc:$filterType"
+            getFromCache(listCache, cacheKey)?.let { return it }
             val url = baseUrl + "filter.php?a=$filterType"
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
@@ -574,6 +611,7 @@ class CocktailRepositoryImpl constructor(
                 return getFallbackAlcoholicCocktails(isAlcoholic)
             }
 
+            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             println("DEBUG: Error in filterCocktailsByAlcoholic: ${e.message}")
@@ -584,6 +622,8 @@ class CocktailRepositoryImpl constructor(
 
     override fun filterCocktailsByCategory(category: String): List<Cocktail> {
         try {
+            val cacheKey = "filter:cat:${category.trim()}"
+            getFromCache(listCache, cacheKey)?.let { return it }
             // Treat categoryId as the category name since API uses names
             val encoded = category.replace(' ', '_')
             val url = baseUrl + "filter.php?c=$encoded"
@@ -620,15 +660,8 @@ class CocktailRepositoryImpl constructor(
                         }
                     }
 
-                    // Combine ingredients with measures
-                    val ingredientsWithMeasures =
-                        if (ingredients.size == measures.size) {
-                            ingredients.mapIndexed { index, ingredient ->
-                                "${measures[index]} $ingredient".trim()
-                            }
-                        } else {
-                            ingredients
-                        }
+                    // Combine ingredients with measures (ingredient first)
+                    val ingredientsWithMeasures = combineIngredientAndMeasure(ingredients, measures)
 
                     val description =
                         buildString {
@@ -651,6 +684,7 @@ class CocktailRepositoryImpl constructor(
                     )
                 }
             }
+            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             return emptyList()
