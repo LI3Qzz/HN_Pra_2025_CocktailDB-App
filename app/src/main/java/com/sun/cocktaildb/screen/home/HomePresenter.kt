@@ -5,6 +5,7 @@ import android.os.Looper
 import com.sun.cocktaildb.data.model.Category
 import com.sun.cocktaildb.data.model.Cocktail
 import com.sun.cocktaildb.data.repository.remote.CocktailRepository
+import com.sun.cocktaildb.utils.Constants
 import com.sun.cocktaildb.utils.FavoriteManager
 import com.sun.cocktaildb.utils.base.BasePresenter
 import java.util.concurrent.Executors
@@ -44,7 +45,7 @@ class HomePresenter(
                 }
             } catch (e: Exception) {
                 mainHandler.post {
-                    view?.showError("Error loading categories: ${e.message ?: "Unknown error"}")
+                    view?.showError("${Constants.ERROR_LOADING_CATEGORIES}: ${e.message ?: Constants.UNKNOWN_ERROR}")
                 }
             }
         }
@@ -74,7 +75,7 @@ class HomePresenter(
                 }
             } catch (e: Exception) {
                 mainHandler.post {
-                    view?.showError("Error loading popular cocktails: ${e.message ?: "Unknown error"}")
+                    view?.showError("${Constants.ERROR_LOADING_POPULAR_COCKTAILS}: ${e.message ?: Constants.UNKNOWN_ERROR}")
                     view?.hideLoading()
                 }
             }
@@ -110,7 +111,7 @@ class HomePresenter(
                 loadPopularCocktails()
             } catch (e: Exception) {
                 mainHandler.post {
-                    view?.showError("Error updating favorite: ${e.message ?: "Unknown error"}")
+                    view?.showError("${Constants.ERROR_UPDATING_FAVORITE}: ${e.message ?: Constants.UNKNOWN_ERROR}")
                 }
             }
         }

@@ -89,5 +89,7 @@
     <string name="description">Description</string>
     <string name="instructions_placeholder">"Instruction "</string>
     <string name="share_to_friends">Share</string>
+    <string name="search">Search</string>
+    <string name="enter_search_query">Please enter a search query</string>
 
 </resources>
