@@ -75,7 +75,6 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
         historyAdapter = HistoryAdapter(
             onHistoryItemClickListener = { query ->
                 binding.etSearch.setText(query)
-                // MERGED: Auto search when clicking history item (from upstream)
                 presenter.searchCocktails(query, presenter.getCurrentSearchType())
             },
             onHistoryItemDeleteClickListener = { query ->
@@ -89,19 +88,14 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
     }
 
     private fun setupSearchInput() {
-        // MERGED: Keep real-time search but with improved logic (from HEAD)
-        // Remove real-time search - only search when button is clicked (from upstream)
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 val query = s?.toString() ?: ""
-                // MERGED: Combined both approaches for maximum functionality
                 if (query.isNotEmpty()) {
-                    // Real-time search for better UX (from HEAD)
                     presenter.searchCocktails(query, presenter.getCurrentSearchType())
                 } else {
-                    // Clear results and show history when empty (from upstream)
                     presenter.clearSearchResults()
                     showSearchHistory()
                 }
@@ -118,15 +112,17 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
                             presenter.setSearchType(SearchType.NAME)
                             binding.etSearch.hint = getString(R.string.search_hint_name)
                             showAlcoholicFilterOnly()
-                            presenter.clearSearchResults()
-                            showSearchHistory()
+                            // Clear current results and load new ones for NAME type
+                            binding.etSearch.setText("")
+                            loadCocktailsForType(SearchType.NAME)
                         }
                         1 -> {
                             presenter.setSearchType(SearchType.INGREDIENT)
                             binding.etSearch.hint = getString(R.string.search_hint_ingredient)
                             showIngredientFilterOnly()
-                            presenter.clearSearchResults()
-                            showSearchHistory()
+                            // Clear current results and load new ones for INGREDIENT type
+                            binding.etSearch.setText("")
+                            loadCocktailsForType(SearchType.INGREDIENT)
                         }
                     }
                 }
@@ -160,6 +156,9 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
                     else -> null
                 }
                 presenter.setAlcoholicFilter(filter)
+                // Trigger search with current query and new filter
+                val currentQuery = binding.etSearch.text.toString().trim()
+                presenter.searchCocktails(currentQuery, presenter.getCurrentSearchType())
             }
 
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
@@ -179,6 +178,9 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
                     else -> ingredientFilters[position]
                 }
                 presenter.setIngredientFilter(filter)
+                // Trigger search with current query and new filter
+                val currentQuery = binding.etSearch.text.toString().trim()
+                presenter.searchCocktails(currentQuery, presenter.getCurrentSearchType())
             }
 
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
@@ -200,7 +202,6 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
             val query = binding.etSearch.text.toString().trim()
             if (query.isNotEmpty()) {
                 presenter.searchCocktails(query, presenter.getCurrentSearchType())
-                // MERGED: Add to history when search button is clicked (from upstream)
                 presenter.addToHistory(query)
             } else {
                 Toast.makeText(context, getString(R.string.enter_search_query), Toast.LENGTH_SHORT).show()
@@ -210,7 +211,9 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
 
     override fun onResume() {
         super.onResume()
-        showSearchHistory()
+        // Load cocktails based on current search type
+        val currentType = presenter.getCurrentSearchType()
+        loadCocktailsForType(currentType)
         refreshFavoriteStatusFromDetailScreen()
     }
 
@@ -221,127 +224,6 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
                 val isFavorite = FavoriteSyncManager.isFavorite(cocktail.id)
                 searchAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
             }
-// MERGED: Keep advanced functionality from HEAD
-        }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        FavoriteSyncManager.unregisterListener(this)
-    }
-
-    // FavoriteSyncManager.FavoriteUpdateListener implementations
-    override fun onFavoriteUpdated(cocktailId: String, isFavorite: Boolean) {
-        searchAdapter.updateCocktailFavoriteStatus(cocktailId, isFavorite)
-    }
-
-    override fun onFavoritesRefreshed() {
-        refreshSearchResultsFromOtherScreens()
-    }
-
-    private fun refreshSearchResultsFromOtherScreens() {
-        val currentCocktails = searchAdapter.getCurrentCocktails()
-        if (currentCocktails.isNotEmpty()) {
-            currentCocktails.forEach { cocktail ->
-                val isFavorite = FavoriteSyncManager.isFavorite(cocktail.id)
-                searchAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
-            }
-        }
-    }
-
-    // SearchView implementations
-    override fun showSearchResults(cocktails: List<Cocktail>) {
-        binding.rvSearchResults.visibility = View.VISIBLE
-        binding.rvSearchHistory.visibility = View.GONE
-        binding.llNoResults.visibility = View.GONE
-        searchAdapter.updateCocktails(cocktails)
-    }
-
-    override fun showNoResults() {
-        binding.rvSearchResults.visibility = View.GONE
-        binding.rvSearchHistory.visibility = View.GONE
-        binding.llNoResults.visibility = View.VISIBLE
-    }
-
-    override fun showHistory(history: List<String>) {
-        binding.rvSearchResults.visibility = View.GONE
-        binding.rvSearchHistory.visibility = View.VISIBLE
-        binding.llNoResults.visibility = View.GONE
-        historyAdapter.updateHistory(history)
-    }
-
-    override fun hideHistory() {
-        binding.rvSearchHistory.visibility = View.GONE
-    }
-
-    override fun clearSearchResults() {
-        binding.rvSearchResults.visibility = View.GONE
-        binding.llNoResults.visibility = View.GONE
-    }
-
-    override fun showLoading() {
-        loadingDialog.show()
-    }
-
-    override fun hideLoading() {
-        loadingDialog.hide()
-    }
-
-    override fun showError(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-    }
-
-    override fun onCocktailClicked(cocktail: Cocktail) {
-        val intent = CocktailActivity.newIntent(requireContext(), cocktail.id)
-        startActivity(intent)
-    }
-
-    override fun removeFromHistory(historyItem: String) {
-        presenter.removeFromHistory(historyItem)
-    }
-
-    // Favorite functionality - KEPT FROM PREVIOUS IMPLEMENTATION
-    private fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
-        if (isFavorite) {
-            Toast.makeText(context, getString(R.string.added_to_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, getString(R.string.removed_from_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
-        }
-        searchAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
-        FavoriteSyncManager.updateFavorite(cocktail, isFavorite)
-    }
-
-    override fun showAlcoholicFilters(filters: List<String>) {
-        // Implementation for showing alcoholic filters
-    }
-
-    override fun showGlassTypes(glassTypes: List<String>) {
-        // Implementation for showing glass types
-    }
-
-    override fun showSearchTypeTabs() {
-        // Implementation for showing search type tabs
-    }
-
-    override fun updateSearchTypeTab(selectedType: SearchType) {
-        // Implementation for updating search type tab
-    }
-
-    override fun showQuickFilters() {
-        // Implementation for showing quick filters
-    }
-
-    override fun showFilterOptions() {
-        // Implementation for showing filter options
-    }
-
-    private fun showSearchHistory() {
-        val history = presenter.getSearchHistory()
-        if (history.isNotEmpty()) {
-            showHistory(history)
-        }
-    }
-// MERGED: End of HEAD section
         }
     }
 
@@ -421,9 +303,7 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
         presenter.removeFromHistory(historyItem)
     }
 
-    // Favorite functionality - KEPT FROM PREVIOUS IMPLEMENTATION
     private fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
-        println("SearchFragment: onFavoriteClicked called for ${cocktail.name}, isFavorite: $isFavorite")
         if (isFavorite) {
             Toast.makeText(context, getString(R.string.added_to_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
         } else {
@@ -457,11 +337,33 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
         // Implementation for showing filter options
     }
 
+    private fun loadCocktailsForType(searchType: SearchType) {
+        // Load cocktails based on the specific search type
+        when (searchType) {
+            SearchType.NAME -> {
+                // For NAME type, load cocktails starting with "M"
+                presenter.searchCocktails("", SearchType.NAME)
+            }
+            SearchType.INGREDIENT -> {
+                // For INGREDIENT type, load popular cocktails
+                presenter.searchCocktails("", SearchType.INGREDIENT)
+            }
+            SearchType.FIRST_LETTER -> {
+                // For FIRST_LETTER type, load cocktails starting with "M"
+                presenter.searchCocktails("", SearchType.FIRST_LETTER)
+            }
+        }
+    }
+
+    private fun loadDefaultCocktails() {
+        // Load some default cocktails to show when search screen opens
+        loadCocktailsForType(presenter.getCurrentSearchType())
+    }
+
     private fun showSearchHistory() {
         val history = presenter.getSearchHistory()
         if (history.isNotEmpty()) {
             showHistory(history)
         }
     }
-// MERGED: End of upstream section
 }

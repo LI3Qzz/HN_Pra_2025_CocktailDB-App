@@ -63,20 +63,7 @@ class FavoriteAdapter(
             onFavoriteClickListener(item, false)
         }
         
-        // MERGED: Also support old view IDs for backward compatibility (from upstream)
-        // This ensures the adapter works with both old and new layouts
-        try {
-            holder.binding.tvName?.text = item.name
-            holder.binding.tvDesc?.text = buildString {
-                item.ingredients.take(3).forEachIndexed { index, s ->
-                    append(s)
-                    if (index < 2) append("\n")
-                }
-            }
-            ImageLoader.loadImage(holder.binding.ivThumb, item.imageUrl, R.drawable.placeholder)
-        } catch (e: Exception) {
-            // Old view IDs not available, continue with new ones
-        }
+        // Note: Removed old view ID references as they don't exist in current layout
     }
 
     override fun getItemCount(): Int = items.size

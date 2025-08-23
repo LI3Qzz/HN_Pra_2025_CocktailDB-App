@@ -52,9 +52,12 @@ class SearchPresenter(
         val hasFilters = selectedAlcoholicFilter != null || selectedIngredientFilter != null
 		
         if (!hasQuery && !hasFilters) {
-            view?.clearSearchResults()
-            view?.showHistory(searchHistory)
-            return
+            // Load default cocktails instead of just showing history
+            view?.hideHistory()
+            view?.showLoading()
+        } else {
+            view?.hideHistory()
+            view?.showLoading()
         }
 
 
@@ -86,7 +89,8 @@ class SearchPresenter(
                                 if (filter != null) {
                                     cocktailRepository.searchCocktailsByIngredient(filter)
                                 } else {
-                                    cocktailRepository.searchCocktailsByFirstLetter("M")
+                                    // Load popular cocktails for ingredient type when no filter is selected
+                                    cocktailRepository.getPopularCocktails()
                                 }
                             }
                         }
@@ -106,12 +110,38 @@ class SearchPresenter(
                 results = sortResultsBySearchPriority(results, query.trim())
 
                 // Update favorite status from Firebase
-                updateFavoriteStatus(results)
+                if (results.isEmpty()) {
+                    // If no results, try to get some fallback cocktails
+                    val fallbackResults = when (searchType) {
+                        SearchType.NAME -> cocktailRepository.searchCocktailsByFirstLetter("M")
+                        SearchType.INGREDIENT -> cocktailRepository.getPopularCocktails()
+                        SearchType.FIRST_LETTER -> cocktailRepository.searchCocktailsByFirstLetter("M")
+                    }
+                    updateFavoriteStatus(fallbackResults)
+                } else {
+                    updateFavoriteStatus(results)
+                }
 
             } catch (e: Exception) {
+                println("SearchPresenter: Error during search: ${e.message}")
+                e.printStackTrace()
                 mainHandler.post {
                     view?.hideLoading()
-                    view?.showError("Search failed: ${e.message}")
+                    // Try to show some fallback cocktails even if search fails
+                    try {
+                        val fallbackResults = when (searchType) {
+                            SearchType.NAME -> cocktailRepository.searchCocktailsByFirstLetter("M")
+                            SearchType.INGREDIENT -> cocktailRepository.getPopularCocktails()
+                            SearchType.FIRST_LETTER -> cocktailRepository.searchCocktailsByFirstLetter("M")
+                        }
+                        if (fallbackResults.isNotEmpty()) {
+                            updateFavoriteStatus(fallbackResults)
+                        } else {
+                            view?.showError("Search failed: ${e.message}")
+                        }
+                    } catch (fallbackError: Exception) {
+                        view?.showError("Search failed: ${e.message}")
+                    }
                 }
             }
         }
@@ -120,11 +150,26 @@ class SearchPresenter(
     private fun applyFilters(results: List<Cocktail>): List<Cocktail> {
         var filteredResults = results
 
-        // Apply alcoholic filter
+        // Apply alcoholic filter - Use API directly instead of filtering existing results
         selectedAlcoholicFilter?.let { filter ->
             if (filter != "All") {
-                filteredResults = filteredResults.filter { cocktail ->
-                    cocktail.description.contains(filter, ignoreCase = true)
+                filteredResults = when (filter) {
+                    "Alcoholic" -> {
+                        // Use API to get alcoholic drinks
+                        cocktailRepository.filterCocktailsByAlcoholic(true)
+                    }
+                    "Non_Alcoholic" -> {
+                        // Use API to get non-alcoholic drinks
+                        cocktailRepository.filterCocktailsByAlcoholic(false)
+                    }
+                    "Optional_Alcohol" -> {
+                        // For optional alcohol, filter the results manually since API doesn't have this option
+                        results.filter { cocktail ->
+                            cocktail.description.contains("optional", ignoreCase = true) ||
+                            cocktail.description.contains("Optional alcohol", ignoreCase = true)
+                        }
+                    }
+                    else -> filteredResults
                 }
             }
         }
