@@ -9,6 +9,7 @@ import com.sun.cocktaildb.utils.Constants
 import com.sun.cocktaildb.utils.FavoriteManager
 import com.sun.cocktaildb.utils.base.BasePresenter
 import java.util.concurrent.Executors
+import com.sun.cocktaildb.utils.FavoriteSyncManager
 
 class HomePresenter(
     private val cocktailRepository: CocktailRepository,
@@ -93,6 +94,11 @@ class HomePresenter(
         cocktail: Cocktail,
         isFavorite: Boolean,
     ) {
+
+        // Use FavoriteSyncManager to handle all favorite operations
+        // This will automatically update Firebase and notify all screens
+        FavoriteSyncManager.updateFavorite(cocktail, isFavorite)
+
         executor.execute {
             try {
                 if (isFavorite) {
@@ -109,6 +115,7 @@ class HomePresenter(
                 }
             }
         }
+
     }
 
     fun onBottomNavigationItemSelected(itemId: Int) {

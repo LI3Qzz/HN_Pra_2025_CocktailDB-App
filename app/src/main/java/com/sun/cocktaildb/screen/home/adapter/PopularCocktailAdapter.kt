@@ -33,6 +33,10 @@ class PopularCocktailAdapter(
         }
     }
     
+    fun getCurrentCocktails(): List<Cocktail> {
+        return cocktails.toList()
+    }
+    
     fun refreshFavorites() {
         notifyDataSetChanged()
     }
