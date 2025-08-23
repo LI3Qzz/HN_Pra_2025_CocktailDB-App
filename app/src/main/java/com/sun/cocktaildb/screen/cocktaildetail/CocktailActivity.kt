@@ -10,16 +10,19 @@ import com.sun.cocktaildb.data.repository.impl.CocktailRepositoryImpl
 import com.sun.cocktaildb.databinding.ActivityDetailBinding
 import com.sun.cocktaildb.screen.cocktaildetail.adapter.IngredientAdapter
 import com.sun.cocktaildb.utils.ImageLoader
+import com.sun.cocktaildb.utils.FavoriteSyncManager
 import com.sun.cocktaildb.utils.base.BaseActivity
 import com.sun.cocktaildb.utils.dialog.LoadingDialog
 import com.sun.cocktaildb.utils.Constants
 
 class CocktailActivity :
     BaseActivity(),
-    CocktailContract.View {
+    CocktailContract.View,
+    FavoriteSyncManager.FavoriteUpdateListener {
     private lateinit var binding: ActivityDetailBinding
     private lateinit var presenter: CocktailPresenter
     private lateinit var ingredientAdapter: IngredientAdapter
+    private var currentCocktail: Cocktail? = null
 
     private val loadingDialog by lazy {
         LoadingDialog(this)
@@ -84,6 +87,7 @@ class CocktailActivity :
     }
 
     override fun showCocktailDetail(cocktail: Cocktail) {
+        currentCocktail = cocktail
         binding.apply {
             // Set cocktail image
             if (cocktail.imageUrl.isNotEmpty() && cocktail.imageUrl != Constants.PLACEHOLDER_IMAGE_URL) {
@@ -215,18 +219,46 @@ class CocktailActivity :
         startActivity(Intent.createChooser(shareIntent, getString(R.string.share_via)))
     }
 
+    // FavoriteSyncManager.FavoriteUpdateListener implementations
+    override fun onFavoriteUpdated(cocktailId: String, isFavorite: Boolean) {
+        // Update favorite button if this is the current cocktail
+        if (currentCocktail?.id == cocktailId) {
+            updateFavoriteButton(isFavorite)
+        }
+    }
+
+    override fun onFavoritesRefreshed() {
+        // Refresh favorite status for current cocktail
+        currentCocktail?.let { cocktail ->
+            val isFavorite = FavoriteSyncManager.isFavorite(cocktail.id)
+            updateFavoriteButton(isFavorite)
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         presenter.onStart()
+        // Register for favorite updates from other screens
+        FavoriteSyncManager.registerListener(this)
+        
+        // Refresh favorite status when resuming
+        currentCocktail?.let { cocktail ->
+            val isFavorite = FavoriteSyncManager.isFavorite(cocktail.id)
+            updateFavoriteButton(isFavorite)
+        }
     }
 
     override fun onPause() {
         super.onPause()
         presenter.onStop()
+        // Unregister from favorite updates
+        FavoriteSyncManager.unregisterListener(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         presenter.onDestroy()
+        // Ensure cleanup
+        FavoriteSyncManager.unregisterListener(this)
     }
 }

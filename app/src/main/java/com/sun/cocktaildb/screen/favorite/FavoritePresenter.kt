@@ -36,4 +36,10 @@ class FavoritePresenter(
             }
         }
     }
+
+    fun removeFromFavorites(cocktailId: String) {
+        repository.removeFavourite(cocktailId)
+        // Refresh the favorites list after removal
+        loadFavorites()
+    }
 }

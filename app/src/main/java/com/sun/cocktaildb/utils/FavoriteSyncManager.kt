@@ -45,7 +45,11 @@ object FavoriteSyncManager {
             FavoriteManager.removeFromFavorites(cocktail)
         }
         
-        // Save to Firebase and notify all screens
+        // Immediately notify all screens about the specific cocktail update
+        // This ensures instant UI updates across all screens
+        notifyListeners(cocktail.id, isFavorite)
+        
+        // Save to Firebase in background
         executor.execute {
             try {
                 if (isFavorite) {
@@ -53,16 +57,9 @@ object FavoriteSyncManager {
                 } else {
                     repository.removeFavourite(cocktail.id)
                 }
-                
-                // Notify all registered screens about the specific cocktail update
-                mainHandler.post {
-                    notifyListeners(cocktail.id, isFavorite)
-                }
             } catch (e: Exception) {
-                // If Firebase fails, still notify local screens
-                mainHandler.post {
-                    notifyListeners(cocktail.id, isFavorite)
-                }
+                // Firebase operation failed, but local state is already updated
+                // Could show a toast or handle error here if needed
             }
         }
     }

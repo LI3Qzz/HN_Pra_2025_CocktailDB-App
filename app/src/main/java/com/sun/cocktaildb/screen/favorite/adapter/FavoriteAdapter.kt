@@ -9,7 +9,8 @@ import com.sun.cocktaildb.utils.ImageLoader
 import com.sun.cocktaildb.R
 
 class FavoriteAdapter(
-    private val onCocktailClickListener: (Cocktail) -> Unit
+    private val onCocktailClickListener: (Cocktail) -> Unit,
+    private val onFavoriteClickListener: (Cocktail, Boolean) -> Unit
 ) : RecyclerView.Adapter<FavoriteAdapter.ViewHolder>() {
 
     private var items: List<Cocktail> = emptyList()
@@ -24,18 +25,41 @@ class FavoriteAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.binding.tvName.text = item.name
         
-        // Load cocktail image
-        ImageLoader.loadImage(holder.binding.ivThumb, item.imageUrl, R.drawable.placeholder)
+        // Set cocktail name
+        holder.binding.tvCocktailName.text = item.name
         
-        holder.binding.tvDesc.text = buildString {
-            item.ingredients.take(3).forEachIndexed { index, s ->
-                append(s)
+        // Set cocktail description (ingredients)
+        holder.binding.tvCocktailDescription.text = buildString {
+            item.ingredients.take(3).forEachIndexed { index, ingredient ->
+                append(ingredient)
                 if (index < 2) append("\n")
             }
         }
-        holder.binding.root.setOnClickListener { onCocktailClickListener(item) }
+        
+        // Load cocktail image
+        if (!item.imageUrl.isNullOrEmpty()) {
+            ImageLoader.loadImage(
+                holder.binding.ivCocktailImage,
+                item.imageUrl,
+                R.drawable.placeholder
+            )
+        } else {
+            holder.binding.ivCocktailImage.setImageResource(R.drawable.placeholder)
+        }
+        
+        // Set favorite icon (always filled since this is favorites list)
+        holder.binding.ivFavorite.setImageResource(R.drawable.ic_favorite_filled_black_24dp)
+        
+        // Set click listeners
+        holder.binding.root.setOnClickListener { 
+            onCocktailClickListener(item) 
+        }
+        
+        holder.binding.ivFavorite.setOnClickListener {
+            // Remove from favorites
+            onFavoriteClickListener(item, false)
+        }
     }
 
     override fun getItemCount(): Int = items.size
@@ -48,5 +72,9 @@ class FavoriteAdapter(
     fun submit(newItems: List<Cocktail>) {
         items = newItems
         notifyDataSetChanged()
+    }
+
+    fun getCurrentCocktails(): List<Cocktail> {
+        return items.toList()
     }
 }

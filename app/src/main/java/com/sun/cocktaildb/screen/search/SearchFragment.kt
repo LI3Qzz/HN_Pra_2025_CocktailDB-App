@@ -293,9 +293,9 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
     // Favorite functionality - KEPT FROM PREVIOUS IMPLEMENTATION
     private fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
         if (isFavorite) {
-            Toast.makeText(context, getString(R.string.removed_from_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
-        } else {
             Toast.makeText(context, getString(R.string.added_to_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, getString(R.string.removed_from_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
         }
         searchAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
         FavoriteSyncManager.updateFavorite(cocktail, isFavorite)

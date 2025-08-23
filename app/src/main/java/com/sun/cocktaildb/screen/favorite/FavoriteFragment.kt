@@ -21,6 +21,7 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
     }
     private lateinit var presenter: FavoritePresenter
     private lateinit var favoriteAdapter: FavoriteAdapter
+    private var needsRefresh = false
 
     private val loadingDialog by lazy {
         LoadingDialog(this@FavoriteFragment.requireActivity())
@@ -49,18 +50,48 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
             onCocktailClickListener = { cocktail ->
                 val intent = CocktailActivity.newIntent(requireContext(), cocktail.id)
                 startActivity(intent)
+            },
+            onFavoriteClickListener = { cocktail, isFavorite ->
+                onFavoriteClicked(cocktail, isFavorite)
             }
         )
         binding.rvFavorites.apply {
-            layoutManager = androidx.recyclerview.widget.GridLayoutManager(context, 2)
+            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
             adapter = favoriteAdapter
         }
     }
 
     override fun onResume() {
         super.onResume()
-        // Refresh favorites list when returning from detail screen or search screen
+        // Always refresh on resume to ensure up-to-date favorites list
         presenter.onStart()
+        needsRefresh = false
+    }
+
+    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
+        super.setUserVisibleHint(isVisibleToUser)
+        if (isVisibleToUser && isResumed) {
+            // Refresh when fragment becomes visible (for ViewPager)
+            if (needsRefresh) {
+                refreshFavoritesList()
+                needsRefresh = false
+            } else {
+                presenter.onStart()
+            }
+        }
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden && isResumed) {
+            // Refresh when fragment becomes visible (for FragmentTransaction show/hide)
+            if (needsRefresh) {
+                refreshFavoritesList()
+                needsRefresh = false
+            } else {
+                presenter.onStart()
+            }
+        }
     }
 
     override fun onDestroyView() {
@@ -71,9 +102,17 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
 
     // FavoriteSyncManager.FavoriteUpdateListener implementations
     override fun onFavoriteUpdated(cocktailId: String, isFavorite: Boolean) {
-        if (!isFavorite) {
-            // If a cocktail was removed from favorites, refresh the entire list
-            // This ensures the cocktail is removed from the favorites list
+        if (isFavorite) {
+            // If a cocktail was added to favorites from another screen
+            needsRefresh = true
+            
+            // If fragment is visible and resumed, refresh immediately
+            if (isVisible && isResumed) {
+                refreshFavoritesList()
+                needsRefresh = false
+            }
+        } else {
+            // If a cocktail was removed from favorites, refresh immediately
             presenter.onStart()
         }
     }
@@ -82,6 +121,21 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
         // Refresh the entire favorites list when any screen updates favorites
         // This ensures the favorites list is always up to date
         presenter.onStart()
+    }
+
+    // Method to immediately refresh favorites list
+    private fun refreshFavoritesList() {
+        // Get current favorites and check if the new cocktail is already in the list
+        val currentFavorites = favoriteAdapter.getCurrentCocktails()
+        
+        // If the list is empty, refresh from presenter
+        if (currentFavorites.isEmpty()) {
+            presenter.onStart()
+        } else {
+            // Check if we need to add the new cocktail to the list
+            // This is a quick refresh without going to the database
+            presenter.onStart()
+        }
     }
 
     // FavoriteView implementations
@@ -105,9 +159,26 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
     }
 
     override fun showError(message: String) {
-        binding.emptyStateContainer.visibility = View.VISIBLE
-        binding.rvFavorites.visibility = View.GONE
-        // You can also show a toast or snackbar here
+        // Show error message
+    }
+
+    // Handle favorite toggle
+    private fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
+        if (!isFavorite) {
+            // Remove from favorites using FavoriteSyncManager to notify all screens
+            FavoriteSyncManager.updateFavorite(cocktail, false)
+            
+            // Immediately remove from local list for better UX
+            val currentItems = favoriteAdapter.getCurrentCocktails().toMutableList()
+            currentItems.removeAll { it.id == cocktail.id }
+            favoriteAdapter.updateCocktails(currentItems)
+            
+            // Show empty state if no more favorites
+            if (currentItems.isEmpty()) {
+                binding.emptyStateContainer.visibility = View.VISIBLE
+                binding.rvFavorites.visibility = View.GONE
+            }
+        }
     }
 }
 
