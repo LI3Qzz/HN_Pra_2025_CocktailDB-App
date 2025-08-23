@@ -6,6 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.sun.cocktaildb.data.model.Category
 import com.sun.cocktaildb.data.model.Cocktail
 import com.sun.cocktaildb.data.repository.remote.CocktailRepository
+import com.sun.cocktaildb.utils.Constants
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -16,34 +17,7 @@ import java.net.URL
 class CocktailRepositoryImpl constructor(
     private val firebase: FirebaseAuthImplement = FirebaseAuthImplement(),
 ) : CocktailRepository {
-    private val baseUrl = "https://www.thecocktaildb.com/api/json/v1/1/"
-
-    // Simple in-memory cache with TTL to speed up fast screen switches
-    private val cacheTtlMs = 60_000L
-    private val cocktailCacheById = mutableMapOf<String, Pair<Cocktail, Long>>()
-    private val listCache = mutableMapOf<String, Pair<List<Cocktail>, Long>>()
-
-    private fun nowMs(): Long = System.currentTimeMillis()
-
-    private fun <T> getFromCache(
-        map: MutableMap<String, Pair<T, Long>>,
-        key: String,
-    ): T? {
-        val entry = map[key] ?: return null
-        val (value, expiry) = entry
-        return if (nowMs() <= expiry) value else {
-            map.remove(key)
-            null
-        }
-    }
-
-    private fun <T> putIntoCache(
-        map: MutableMap<String, Pair<T, Long>>,
-        key: String,
-        value: T,
-    ) {
-        map[key] = value to (nowMs() + cacheTtlMs)
-    }
+    private val baseUrl = Constants.BASE_URL
 
     // Combine parallel ingredient and measure lists into display items.
     private fun combineIngredientAndMeasure(
@@ -78,7 +52,7 @@ class CocktailRepositoryImpl constructor(
                         if (sampleCocktails.isNotEmpty()) {
                             sampleCocktails.first().imageUrl
                         } else {
-                            "https://example.com/$name.jpg"
+                            "${Constants.CATEGORY_IMAGE_BASE_URL}/$name.jpg"
                         }
 
                     result.add(
@@ -104,7 +78,6 @@ class CocktailRepositoryImpl constructor(
 
     override fun getPopularCocktails(): List<Cocktail> {
         try {
-            getFromCache(listCache, key = "popular")?.let { return it }
             // Use search by first letter 'M' to get some popular cocktails
             val url = baseUrl + "search.php?f=M"
             val json = fetchJson(url)
@@ -157,14 +130,13 @@ class CocktailRepositoryImpl constructor(
                             name = name,
                             description = description,
                             imageUrl = thumb.ifEmpty { "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg" },
-                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
-                            instructions = "Instructions not available",
-                            category = category.ifEmpty { "Unknown" },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf(Constants.DEFAULT_INGREDIENTS) },
+                            instructions = Constants.DEFAULT_INSTRUCTIONS,
+                            category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
                         ),
                     )
                 }
             }
-            putIntoCache(listCache, key = "popular", result)
             return result
         } catch (e: Exception) {
             return emptyList()
@@ -173,8 +145,6 @@ class CocktailRepositoryImpl constructor(
 
     override fun getCocktailsByCategory(categoryId: String): List<Cocktail> {
         try {
-            val cacheKey = "category:$categoryId"
-            getFromCache(listCache, cacheKey)?.let { return it }
             // Treat categoryId as the category name since API uses names
             val encoded = categoryId.replace(' ', '_')
             val url = baseUrl + "filter.php?c=$encoded"
@@ -227,15 +197,14 @@ class CocktailRepositoryImpl constructor(
                             id = id,
                             name = name,
                             description = description,
-                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
-                            instructions = "Instructions not available",
+                            imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf(Constants.DEFAULT_INGREDIENTS) },
+                            instructions = Constants.DEFAULT_INSTRUCTIONS,
                             category = category.ifEmpty { categoryId },
                         ),
                     )
                 }
             }
-            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             return emptyList()
@@ -244,7 +213,6 @@ class CocktailRepositoryImpl constructor(
 
     override fun getCocktailById(id: String): Cocktail? {
         try {
-            getFromCache(cocktailCacheById, id)?.let { return it }
             val url = baseUrl + "lookup.php?i=$id"
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
@@ -296,13 +264,12 @@ class CocktailRepositoryImpl constructor(
             val cocktail = Cocktail(
                 id = id,
                 name = name,
-                description = description.ifEmpty { "Delicious cocktail" },
-                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
-                instructions = instructions.ifEmpty { "Instructions not available" },
-                category = category.ifEmpty { "Unknown" },
+                description = description.ifEmpty { Constants.DEFAULT_DESCRIPTION },
+                imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
+                ingredients = ingredientsWithMeasures.ifEmpty { listOf(Constants.DEFAULT_INGREDIENTS) },
+                instructions = instructions.ifEmpty { Constants.DEFAULT_INSTRUCTIONS },
+                category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
             )
-            putIntoCache(cocktailCacheById, id, cocktail)
             return cocktail
         } catch (e: Exception) {
             return null
@@ -311,17 +278,12 @@ class CocktailRepositoryImpl constructor(
 
     override fun searchCocktails(query: String): List<Cocktail> {
         try {
-            val cacheKey = "search:q:${query.trim()}"
-            getFromCache(listCache, cacheKey)?.let { return it }
             val url = baseUrl + "search.php?s=" + query.trim()
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
 
-            // Limit to first 20 cocktails to avoid too many API calls
-            val limit = minOf(20, drinksArray.length())
-
-            for (i in 0 until limit) {
+            for (i in 0 until drinksArray.length()) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
@@ -346,16 +308,15 @@ class CocktailRepositoryImpl constructor(
                                 id = id,
                                 name = name,
                                 description = description,
-                                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                                ingredients = listOf("Ingredients not available"),
-                                instructions = "Instructions not available",
-                                category = category.ifEmpty { "Unknown" },
+                                imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
+                                ingredients = listOf(Constants.DEFAULT_INGREDIENTS),
+                                instructions = Constants.DEFAULT_INSTRUCTIONS,
+                                category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
                             ),
                         )
                     }
                 }
             }
-            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             return emptyList()
@@ -365,17 +326,12 @@ class CocktailRepositoryImpl constructor(
     // New search methods implementation
     override fun searchCocktailsByName(query: String): List<Cocktail> {
         try {
-            val cacheKey = "search:name:${query.trim()}"
-            getFromCache(listCache, cacheKey)?.let { return it }
             val url = baseUrl + "search.php?s=" + query.trim()
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
 
-            // Limit to first 20 cocktails to avoid too many API calls
-            val limit = minOf(20, drinksArray.length())
-
-            for (i in 0 until limit) {
+            for (i in 0 until drinksArray.length()) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
@@ -398,17 +354,16 @@ class CocktailRepositoryImpl constructor(
                             Cocktail(
                                 id = id,
                                 name = name,
-                                description = description.ifEmpty { "Delicious cocktail" },
-                                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                                ingredients = listOf("Ingredients not available"),
-                                instructions = "Instructions not available",
-                                category = category.ifEmpty { "Unknown" },
+                                description = description.ifEmpty { Constants.DEFAULT_DESCRIPTION },
+                                imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
+                                ingredients = listOf(Constants.DEFAULT_INGREDIENTS),
+                                instructions = Constants.DEFAULT_INSTRUCTIONS,
+                                category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
                             ),
                         )
                     }
                 }
             }
-            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             return emptyList()
@@ -417,8 +372,6 @@ class CocktailRepositoryImpl constructor(
 
     override fun searchCocktailsByFirstLetter(letter: String): List<Cocktail> {
         try {
-            val cacheKey = "search:first:${letter.uppercase().first()}"
-            getFromCache(listCache, cacheKey)?.let { return it }
             val url = baseUrl + "search.php?f=" + letter.uppercase().first()
             Log.d(TAG, "Searching cocktails with URL: $url")
 
@@ -436,10 +389,7 @@ class CocktailRepositoryImpl constructor(
             Log.d(TAG, "Found ${drinksArray.length()} cocktails")
             val result = mutableListOf<Cocktail>()
 
-            // Limit to first 20 cocktails to avoid too many API calls
-            val limit = minOf(20, drinksArray.length())
-
-            for (i in 0 until limit) {
+            for (i in 0 until drinksArray.length()) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
@@ -482,10 +432,10 @@ class CocktailRepositoryImpl constructor(
                             id = id,
                             name = name,
                             description = description,
-                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
-                            instructions = instructions.ifEmpty { "Instructions not available" },
-                            category = category.ifEmpty { "Unknown" },
+                            imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf(Constants.DEFAULT_INGREDIENTS) },
+                            instructions = instructions.ifEmpty { Constants.DEFAULT_INSTRUCTIONS },
+                            category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
                         ),
                     )
                     println("DEBUG: Added cocktail: $name with ${ingredientsWithMeasures.size} ingredients")
@@ -500,7 +450,6 @@ class CocktailRepositoryImpl constructor(
                 return getFallbackCocktailsForLetter(letter)
             }
 
-            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             println("DEBUG: Error in searchCocktailsByFirstLetter: ${e.message}")
@@ -511,18 +460,13 @@ class CocktailRepositoryImpl constructor(
 
     override fun searchCocktailsByIngredient(ingredient: String): List<Cocktail> {
         try {
-            val cacheKey = "search:ing:${ingredient.trim()}"
-            getFromCache(listCache, cacheKey)?.let { return it }
             // For ingredient search, we need to use filter.php?i=ingredient
             val filterUrl = baseUrl + "filter.php?i=" + ingredient.trim()
             val filterJson = fetchJson(filterUrl)
             val drinksArray = JSONObject(filterJson).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
 
-            // Limit to first 20 cocktails to avoid too many API calls
-            val limit = minOf(20, drinksArray.length())
-
-            for (i in 0 until limit) {
+            for (i in 0 until drinksArray.length()) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
@@ -541,16 +485,15 @@ class CocktailRepositoryImpl constructor(
                                 id = id,
                                 name = name,
                                 description = "Cocktails containing $ingredient",
-                                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                                ingredients = listOf("Ingredients not available"),
-                                instructions = "Instructions not available",
-                                category = category.ifEmpty { "Unknown" },
+                                imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
+                                ingredients = listOf(Constants.DEFAULT_INGREDIENTS),
+                                instructions = Constants.DEFAULT_INSTRUCTIONS,
+                                category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
                             ),
                         )
                     }
                 }
             }
-            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             return emptyList()
@@ -560,17 +503,12 @@ class CocktailRepositoryImpl constructor(
     override fun filterCocktailsByAlcoholic(isAlcoholic: Boolean): List<Cocktail> {
         try {
             val filterType = if (isAlcoholic) "Alcoholic" else "Non_Alcoholic"
-            val cacheKey = "filter:alc:$filterType"
-            getFromCache(listCache, cacheKey)?.let { return it }
             val url = baseUrl + "filter.php?a=$filterType"
             val json = fetchJson(url)
             val drinksArray = JSONObject(json).optJSONArray("drinks") ?: JSONArray()
             val result = mutableListOf<Cocktail>()
 
-            // Limit to first 20 cocktails to avoid too many API calls
-            val limit = minOf(20, drinksArray.length())
-
-            for (i in 0 until limit) {
+            for (i in 0 until drinksArray.length()) {
                 val item = drinksArray.optJSONObject(i)
                 val id = item?.optString("idDrink").orEmpty()
                 val name = item?.optString("strDrink").orEmpty()
@@ -595,10 +533,10 @@ class CocktailRepositoryImpl constructor(
                                 id = id,
                                 name = name,
                                 description = description,
-                                imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                                ingredients = listOf("Ingredients not available"),
-                                instructions = "Instructions not available",
-                                category = category.ifEmpty { "Unknown" },
+                                imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
+                                ingredients = listOf(Constants.DEFAULT_INGREDIENTS),
+                                instructions = Constants.DEFAULT_INSTRUCTIONS,
+                                category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
                             ),
                         )
                     }
@@ -611,7 +549,6 @@ class CocktailRepositoryImpl constructor(
                 return getFallbackAlcoholicCocktails(isAlcoholic)
             }
 
-            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             println("DEBUG: Error in filterCocktailsByAlcoholic: ${e.message}")
@@ -622,8 +559,6 @@ class CocktailRepositoryImpl constructor(
 
     override fun filterCocktailsByCategory(category: String): List<Cocktail> {
         try {
-            val cacheKey = "filter:cat:${category.trim()}"
-            getFromCache(listCache, cacheKey)?.let { return it }
             // Treat categoryId as the category name since API uses names
             val encoded = category.replace(' ', '_')
             val url = baseUrl + "filter.php?c=$encoded"
@@ -676,15 +611,14 @@ class CocktailRepositoryImpl constructor(
                             id = id,
                             name = name,
                             description = description,
-                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
-                            instructions = "Instructions not available",
+                            imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf(Constants.DEFAULT_INGREDIENTS) },
+                            instructions = Constants.DEFAULT_INSTRUCTIONS,
                             category = categoryName.ifEmpty { category },
                         ),
                     )
                 }
             }
-            putIntoCache(listCache, cacheKey, result)
             return result
         } catch (e: Exception) {
             return emptyList()
@@ -934,10 +868,10 @@ class CocktailRepositoryImpl constructor(
                             id = id,
                             name = name,
                             description = description,
-                            imageUrl = thumb.ifEmpty { "https://example.com/placeholder.jpg" },
-                            ingredients = ingredientsWithMeasures.ifEmpty { listOf("Ingredients not available") },
-                            instructions = "Instructions not available",
-                            category = category.ifEmpty { "Unknown" },
+                            imageUrl = thumb.ifEmpty { Constants.PLACEHOLDER_IMAGE_URL },
+                            ingredients = ingredientsWithMeasures.ifEmpty { listOf(Constants.DEFAULT_INGREDIENTS) },
+                            instructions = Constants.DEFAULT_INSTRUCTIONS,
+                            category = category.ifEmpty { Constants.DEFAULT_CATEGORY },
                         ),
                     )
                 }

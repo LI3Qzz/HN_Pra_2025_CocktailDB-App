@@ -12,6 +12,7 @@ import com.sun.cocktaildb.screen.cocktaildetail.adapter.IngredientAdapter
 import com.sun.cocktaildb.utils.ImageLoader
 import com.sun.cocktaildb.utils.base.BaseActivity
 import com.sun.cocktaildb.utils.dialog.LoadingDialog
+import com.sun.cocktaildb.utils.Constants
 
 class CocktailActivity :
     BaseActivity(),
@@ -85,7 +86,7 @@ class CocktailActivity :
     override fun showCocktailDetail(cocktail: Cocktail) {
         binding.apply {
             // Set cocktail image
-            if (cocktail.imageUrl.isNotEmpty() && cocktail.imageUrl != "https://example.com/placeholder.jpg") {
+            if (cocktail.imageUrl.isNotEmpty() && cocktail.imageUrl != Constants.PLACEHOLDER_IMAGE_URL) {
                 ImageLoader.loadImage(ivCocktail, cocktail.imageUrl, R.drawable.placeholder)
             } else {
                 ivCocktail.setImageResource(R.drawable.placeholder)
@@ -96,7 +97,7 @@ class CocktailActivity :
 
             // Set tags (category and alcoholic status)
             val tags = mutableListOf<String>()
-            if (cocktail.category.isNotEmpty() && cocktail.category != "Unknown") {
+            if (cocktail.category.isNotEmpty() && cocktail.category != Constants.DEFAULT_CATEGORY) {
                 tags.add(cocktail.category)
             }
 
