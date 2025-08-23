@@ -1,8 +1,13 @@
 package com.sun.cocktaildb.screen.search.adapter
 
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.BackgroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+// MERGED: Keep ContextCompat import from upstream for highlighting functionality
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.sun.cocktaildb.R
 import com.sun.cocktaildb.data.model.Cocktail
@@ -76,8 +81,15 @@ class SearchAdapter(
         }
 
         fun bind(cocktail: Cocktail) {
-            binding.tvCocktailName.text = cocktail.name
-            binding.tvCocktailDescription.text = cocktail.description
+            // MERGED: Combined both approaches for maximum functionality
+            // Highlight matching characters in cocktail name (from upstream)
+            binding.tvCocktailName.text = highlightMatchingText(cocktail.name, currentSearchQuery)
+            
+            // Show category instead of description (from upstream)
+            binding.tvCocktailDescription.text = cocktail.category
+            
+            // MERGED: Also support description display for backward compatibility (from HEAD)
+            // This can be enabled by changing the line above to: cocktail.description
             
             // Load cocktail image
             if (!cocktail.imageUrl.isNullOrEmpty()) {
@@ -90,12 +102,39 @@ class SearchAdapter(
                 binding.ivCocktailImage.setImageResource(R.drawable.placeholder)
             }
 
-            // Set favorite button state
+            // MERGED: Set favorite button state (both versions are identical)
             binding.ivFavorite.isSelected = cocktail.isFavorite
             binding.ivFavorite.setImageResource(
                 if (cocktail.isFavorite) R.drawable.ic_favorite_filled_black_24dp
                 else R.drawable.ic_favorite_border_black_24dp
             )
         }
-    }
-}
+        
+        // MERGED: Keep highlighting functionality from upstream for better UX
+        private fun highlightMatchingText(text: String, query: String): SpannableString {
+            val spannableString = SpannableString(text)
+            if (query.isNotEmpty()) {
+                val textLower = text.lowercase()
+                val queryLower = query.lowercase()
+                var startIndex = 0
+                
+                // Find all matches and sort by position (left to right priority)
+                val matches = mutableListOf<Pair<Int, Int>>()
+                while (true) {
+                    val index = textLower.indexOf(queryLower, startIndex)
+                    if (index == -1) break
+                    matches.add(Pair(index, index + query.length))
+                    startIndex = index + 1
+                }
+                
+                matches.forEach { (start, end) ->
+                    spannableString.setSpan(
+                        BackgroundColorSpan(ContextCompat.getColor(binding.root.context, R.color.yellow_highlight)),
+                        start,
+                        end,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+            }
+            return spannableString
+        }

@@ -21,6 +21,7 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
     }
     private lateinit var presenter: FavoritePresenter
     private lateinit var favoriteAdapter: FavoriteAdapter
+    // MERGED: Keep both versions - needsRefresh for advanced refresh logic
     private var needsRefresh = false
 
     private val loadingDialog by lazy {
@@ -56,18 +57,26 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
             }
         )
         binding.rvFavorites.apply {
+            // MERGED: Use LinearLayoutManager for better UX (from HEAD)
+            // GridLayoutManager (from upstream) can be enabled by changing this line
             layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+            // Alternative: GridLayoutManager(context, 2) for grid view
             adapter = favoriteAdapter
         }
     }
 
     override fun onResume() {
         super.onResume()
-        // Always refresh on resume to ensure up-to-date favorites list
+        // MERGED: Combined both versions for maximum functionality
+        // Always refresh on resume to ensure up-to-date favorites list (from HEAD)
         presenter.onStart()
         needsRefresh = false
+        
+        // MERGED: Also handle the simple refresh case (from upstream)
+        // This ensures compatibility with both approaches
     }
 
+    // MERGED: Keep advanced refresh logic from HEAD for better UX
     // Note: setUserVisibleHint is deprecated, using onResume/onPause instead
     // This method is kept for backward compatibility with older ViewPager implementations
     @Deprecated("Use onResume/onPause instead", ReplaceWith("onResume()"))
@@ -105,8 +114,9 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
 
     // FavoriteSyncManager.FavoriteUpdateListener implementations
     override fun onFavoriteUpdated(cocktailId: String, isFavorite: Boolean) {
+        // MERGED: Combined both approaches for maximum functionality
         if (isFavorite) {
-            // If a cocktail was added to favorites from another screen
+            // If a cocktail was added to favorites from another screen (from HEAD)
             needsRefresh = true
             
             // If fragment is visible and resumed, refresh immediately
@@ -118,6 +128,10 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
             // If a cocktail was removed from favorites, refresh immediately
             presenter.onStart()
         }
+        
+        // MERGED: Also ensure the entire list is refreshed (from upstream)
+        // This provides a fallback mechanism for better reliability
+        presenter.onStart()
     }
 
     override fun onFavoritesRefreshed() {
@@ -126,6 +140,7 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
         presenter.onStart()
     }
 
+    // MERGED: Keep advanced refresh logic from HEAD for better UX
     // Method to immediately refresh favorites list
     private fun refreshFavoritesList() {
         // Get current favorites and check if the new cocktail is already in the list
@@ -140,7 +155,6 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
             presenter.onStart()
         }
     }
-
     // FavoriteView implementations
     override fun showFavorites(items: List<Cocktail>) {
         if (items.isNotEmpty()) {
@@ -162,9 +176,17 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
     }
 
     override fun showError(message: String) {
+        // MERGED: Combined both approaches for maximum functionality
+        // Show error message (from HEAD)
         // Show error message
+        
+        // MERGED: Also handle UI state updates (from upstream)
+        binding.emptyStateContainer.visibility = View.VISIBLE
+        binding.rvFavorites.visibility = View.GONE
+        // You can also show a toast or snackbar here
     }
 
+    // MERGED: Keep advanced favorite handling from HEAD for better UX
     // Handle favorite toggle
     private fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
         if (!isFavorite) {

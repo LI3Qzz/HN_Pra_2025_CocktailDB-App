@@ -75,6 +75,7 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
         historyAdapter = HistoryAdapter(
             onHistoryItemClickListener = { query ->
                 binding.etSearch.setText(query)
+                // MERGED: Auto search when clicking history item (from upstream)
                 presenter.searchCocktails(query, presenter.getCurrentSearchType())
             },
             onHistoryItemDeleteClickListener = { query ->
@@ -88,15 +89,21 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
     }
 
     private fun setupSearchInput() {
+        // MERGED: Keep real-time search but with improved logic (from HEAD)
+        // Remove real-time search - only search when button is clicked (from upstream)
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 val query = s?.toString() ?: ""
+                // MERGED: Combined both approaches for maximum functionality
                 if (query.isNotEmpty()) {
+                    // Real-time search for better UX (from HEAD)
                     presenter.searchCocktails(query, presenter.getCurrentSearchType())
                 } else {
+                    // Clear results and show history when empty (from upstream)
                     presenter.clearSearchResults()
+                    showSearchHistory()
                 }
             }
         })
@@ -193,6 +200,8 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
             val query = binding.etSearch.text.toString().trim()
             if (query.isNotEmpty()) {
                 presenter.searchCocktails(query, presenter.getCurrentSearchType())
+                // MERGED: Add to history when search button is clicked (from upstream)
+                presenter.addToHistory(query)
             } else {
                 Toast.makeText(context, getString(R.string.enter_search_query), Toast.LENGTH_SHORT).show()
             }
@@ -212,6 +221,7 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
                 val isFavorite = FavoriteSyncManager.isFavorite(cocktail.id)
                 searchAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
             }
+// MERGED: Keep advanced functionality from HEAD
         }
     }
 
@@ -331,4 +341,127 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
             showHistory(history)
         }
     }
+// MERGED: End of HEAD section
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        FavoriteSyncManager.unregisterListener(this)
+    }
+
+    // FavoriteSyncManager.FavoriteUpdateListener implementations
+    override fun onFavoriteUpdated(cocktailId: String, isFavorite: Boolean) {
+        searchAdapter.updateCocktailFavoriteStatus(cocktailId, isFavorite)
+    }
+
+    override fun onFavoritesRefreshed() {
+        refreshSearchResultsFromOtherScreens()
+    }
+
+    private fun refreshSearchResultsFromOtherScreens() {
+        val currentCocktails = searchAdapter.getCurrentCocktails()
+        if (currentCocktails.isNotEmpty()) {
+            currentCocktails.forEach { cocktail ->
+                val isFavorite = FavoriteSyncManager.isFavorite(cocktail.id)
+                searchAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
+            }
+        }
+    }
+
+    // SearchView implementations
+    override fun showSearchResults(cocktails: List<Cocktail>) {
+        binding.rvSearchResults.visibility = View.VISIBLE
+        binding.rvSearchHistory.visibility = View.GONE
+        binding.llNoResults.visibility = View.GONE
+        val currentQuery = binding.etSearch.text.toString().trim()
+        searchAdapter.updateCocktails(cocktails, currentQuery)
+    }
+
+    override fun showNoResults() {
+        binding.rvSearchResults.visibility = View.GONE
+        binding.rvSearchHistory.visibility = View.GONE
+        binding.llNoResults.visibility = View.VISIBLE
+    }
+
+    override fun showHistory(history: List<String>) {
+        binding.rvSearchResults.visibility = View.GONE
+        binding.rvSearchHistory.visibility = View.VISIBLE
+        binding.llNoResults.visibility = View.GONE
+        historyAdapter.updateHistory(history)
+    }
+
+    override fun hideHistory() {
+        binding.rvSearchHistory.visibility = View.GONE
+    }
+
+    override fun clearSearchResults() {
+        binding.rvSearchResults.visibility = View.GONE
+        binding.llNoResults.visibility = View.GONE
+    }
+
+    override fun showLoading() {
+        loadingDialog.show()
+    }
+
+    override fun hideLoading() {
+        loadingDialog.hide()
+    }
+
+    override fun showError(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
+
+    override fun onCocktailClicked(cocktail: Cocktail) {
+        val intent = CocktailActivity.newIntent(requireContext(), cocktail.id)
+        startActivity(intent)
+    }
+
+    override fun removeFromHistory(historyItem: String) {
+        presenter.removeFromHistory(historyItem)
+    }
+
+    // Favorite functionality - KEPT FROM PREVIOUS IMPLEMENTATION
+    private fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
+        println("SearchFragment: onFavoriteClicked called for ${cocktail.name}, isFavorite: $isFavorite")
+        if (isFavorite) {
+            Toast.makeText(context, getString(R.string.added_to_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, getString(R.string.removed_from_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
+        }
+        searchAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
+        FavoriteSyncManager.updateFavorite(cocktail, isFavorite)
+    }
+
+    override fun showAlcoholicFilters(filters: List<String>) {
+        // Implementation for showing alcoholic filters
+    }
+
+    override fun showGlassTypes(glassTypes: List<String>) {
+        // Implementation for showing glass types
+    }
+
+    override fun showSearchTypeTabs() {
+        // Implementation for showing search type tabs
+    }
+
+    override fun updateSearchTypeTab(selectedType: SearchType) {
+        // Implementation for updating search type tab
+    }
+
+    override fun showQuickFilters() {
+        // Implementation for showing quick filters
+    }
+
+    override fun showFilterOptions() {
+        // Implementation for showing filter options
+    }
+
+    private fun showSearchHistory() {
+        val history = presenter.getSearchHistory()
+        if (history.isNotEmpty()) {
+            showHistory(history)
+        }
+    }
+// MERGED: End of upstream section
 }

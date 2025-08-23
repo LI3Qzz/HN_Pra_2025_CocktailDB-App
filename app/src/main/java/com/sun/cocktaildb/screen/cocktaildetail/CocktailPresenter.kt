@@ -59,14 +59,15 @@ class CocktailPresenter(
         }
     }
 
+    // MERGED: Combined both versions of checkFavoriteStatus for maximum functionality
     private fun checkFavoriteStatus(cocktailId: String) {
-        // Use FavoriteSyncManager for immediate status check
+        // Use FavoriteSyncManager for immediate status check (from HEAD)
         val isFavorite = FavoriteSyncManager.isFavorite(cocktailId)
         mainHandler.post {
             view?.updateFavoriteButton(isFavorite)
         }
         
-        // Also sync with Firebase in background
+        // Also sync with Firebase in background (from HEAD)
         executor.execute {
             try {
                 repository.getFavouriteCocktails { result ->
@@ -86,14 +87,23 @@ class CocktailPresenter(
                                 view?.updateFavoriteButton(firebaseFavorite)
                             }
                         }
+                    } else {
+                        // Fallback to local FavoriteManager if Firebase fails (from upstream)
+                        val isFavorite = FavoriteSyncManager.isFavorite(cocktailId)
+                        mainHandler.post {
+                            view?.updateFavoriteButton(isFavorite)
+                        }
                     }
                 }
             } catch (e: Exception) {
                 // Firebase check failed, but we already have local status
+                val isFavorite = FavoriteSyncManager.isFavorite(cocktailId)
+                mainHandler.post {
+                    view?.updateFavoriteButton(isFavorite)
+                }
             }
         }
     }
-
     override fun toggleFavorite(cocktail: Cocktail) {
         val isFavorite = FavoriteSyncManager.isFavorite(cocktail.id)
         val newFavoriteStatus = !isFavorite

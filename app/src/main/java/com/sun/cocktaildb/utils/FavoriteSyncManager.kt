@@ -45,11 +45,12 @@ object FavoriteSyncManager {
             FavoriteManager.removeFromFavorites(cocktail)
         }
         
-        // Immediately notify all screens about the specific cocktail update
+        // MERGED: Combined both approaches for maximum functionality
+        // Immediately notify all screens about the specific cocktail update (from HEAD)
         // This ensures instant UI updates across all screens
         notifyListeners(cocktail.id, isFavorite)
         
-        // Save to Firebase in background
+        // Save to Firebase in background (from HEAD)
         executor.execute {
             try {
                 if (isFavorite) {
@@ -57,9 +58,19 @@ object FavoriteSyncManager {
                 } else {
                     repository.removeFavourite(cocktail.id)
                 }
+                
+                // MERGED: Firebase operation successful - no need to notify again
+                // Local notification already happened above for immediate UI update
             } catch (e: Exception) {
-                // Firebase operation failed, but local state is already updated
+                // MERGED: Combined both error handling approaches
+                // Firebase operation failed, but local state is already updated (from HEAD)
                 // Could show a toast or handle error here if needed
+                
+                // If Firebase fails, still notify local screens (from upstream)
+                // This ensures screens get updated even if Firebase fails
+                mainHandler.post {
+                    notifyListeners(cocktail.id, isFavorite)
+                }
             }
         }
     }
@@ -96,10 +107,11 @@ object FavoriteSyncManager {
     }
 
     fun getFavoriteCocktails(): List<Cocktail> {
-        // This method is not used in current implementation
+        // MERGED: Combined both approaches for maximum clarity
+        // This method is not used in current implementation (from HEAD)
         // FavoriteManager only stores IDs, not full Cocktail objects
         // Use getFavoriteCocktailIds() instead for ID-based operations
-        return emptyList()
+        return emptyList() // Placeholder, as FavoriteManager only stores IDs (from upstream)
     }
 
     fun getFavoriteCocktailIds(): Set<String> {
@@ -107,10 +119,14 @@ object FavoriteSyncManager {
     }
 
     private fun notifyListeners(cocktailId: String, isFavorite: Boolean) {
+        // MERGED: Keep debug logging from upstream for better debugging
+        println("FavoriteSyncManager: Notifying ${listeners.size} listeners for $cocktailId, isFavorite: $isFavorite")
         listeners.forEach { listener ->
             try {
                 listener.onFavoriteUpdated(cocktailId, isFavorite)
             } catch (e: Exception) {
+                // MERGED: Keep debug logging from upstream for better debugging
+                println("FavoriteSyncManager: Error notifying listener: ${e.message}")
                 listeners.remove(listener)
             }
         }

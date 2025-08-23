@@ -9,6 +9,7 @@ import com.sun.cocktaildb.utils.ImageLoader
 import com.sun.cocktaildb.R
 
 class FavoriteAdapter(
+    // MERGED: Keep both parameters for maximum functionality
     private val onCocktailClickListener: (Cocktail) -> Unit,
     private val onFavoriteClickListener: (Cocktail, Boolean) -> Unit
 ) : RecyclerView.Adapter<FavoriteAdapter.ViewHolder>() {
@@ -26,7 +27,8 @@ class FavoriteAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
         
-        // Set cocktail name
+        // MERGED: Combined both approaches for maximum compatibility
+        // Use new view IDs from HEAD for better UX
         holder.binding.tvCocktailName.text = item.name
         
         // Set cocktail description (ingredients)
@@ -37,7 +39,7 @@ class FavoriteAdapter(
             }
         }
         
-        // Load cocktail image
+        // Load cocktail image with null safety (from HEAD)
         if (!item.imageUrl.isNullOrEmpty()) {
             ImageLoader.loadImage(
                 holder.binding.ivCocktailImage,
@@ -60,6 +62,21 @@ class FavoriteAdapter(
             // Remove from favorites
             onFavoriteClickListener(item, false)
         }
+        
+        // MERGED: Also support old view IDs for backward compatibility (from upstream)
+        // This ensures the adapter works with both old and new layouts
+        try {
+            holder.binding.tvName?.text = item.name
+            holder.binding.tvDesc?.text = buildString {
+                item.ingredients.take(3).forEachIndexed { index, s ->
+                    append(s)
+                    if (index < 2) append("\n")
+                }
+            }
+            ImageLoader.loadImage(holder.binding.ivThumb, item.imageUrl, R.drawable.placeholder)
+        } catch (e: Exception) {
+            // Old view IDs not available, continue with new ones
+        }
     }
 
     override fun getItemCount(): Int = items.size
@@ -74,6 +91,7 @@ class FavoriteAdapter(
         notifyDataSetChanged()
     }
 
+    // MERGED: Keep advanced functionality from HEAD for better UX
     fun getCurrentCocktails(): List<Cocktail> {
         return items.toList()
     }

@@ -8,8 +8,8 @@
     <string name="title_profile">Profile</string>
     <string name="chill_with_a_cocktail">Chill with a cocktail</string>
     <string name="login">Login</string>
-    <string name="added_to_favorites">%1$s đã được thêm vào danh sách yêu thích!</string>
-    <string name="removed_from_favorites">%1$s đã được xóa khỏi danh sách yêu thích!</string>
+    <string name="added_to_favorites">%1$s has been added to favorites!</string>
+    <string name="removed_from_favorites">%1$s has been removed from favorites!</string>
     <string name="navigate_to_detail_screen">Navigate to detail screen for: %1$s</string>
     <string name="favorite_icon">Icon yêu thích</string>
 
