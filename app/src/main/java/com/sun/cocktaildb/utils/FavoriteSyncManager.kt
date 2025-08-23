@@ -107,10 +107,12 @@ object FavoriteSyncManager {
     }
 
     private fun notifyListeners(cocktailId: String, isFavorite: Boolean) {
+        println("FavoriteSyncManager: Notifying ${listeners.size} listeners for $cocktailId, isFavorite: $isFavorite")
         listeners.forEach { listener ->
             try {
                 listener.onFavoriteUpdated(cocktailId, isFavorite)
             } catch (e: Exception) {
+                println("FavoriteSyncManager: Error notifying listener: ${e.message}")
                 listeners.remove(listener)
             }
         }

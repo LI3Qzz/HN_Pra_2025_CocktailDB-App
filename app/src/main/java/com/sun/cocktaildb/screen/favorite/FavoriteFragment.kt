@@ -71,11 +71,9 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
 
     // FavoriteSyncManager.FavoriteUpdateListener implementations
     override fun onFavoriteUpdated(cocktailId: String, isFavorite: Boolean) {
-        if (!isFavorite) {
-            // If a cocktail was removed from favorites, refresh the entire list
-            // This ensures the cocktail is removed from the favorites list
-            presenter.onStart()
-        }
+        // Refresh the entire list when any favorite status changes
+        // This ensures the favorites list is always up to date
+        presenter.onStart()
     }
 
     override fun onFavoritesRefreshed() {

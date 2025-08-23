@@ -75,6 +75,7 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
         historyAdapter = HistoryAdapter(
             onHistoryItemClickListener = { query ->
                 binding.etSearch.setText(query)
+                // Auto search when clicking history item
                 presenter.searchCocktails(query, presenter.getCurrentSearchType())
             },
             onHistoryItemDeleteClickListener = { query ->
@@ -88,15 +89,15 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
     }
 
     private fun setupSearchInput() {
+        // Remove real-time search - only search when button is clicked
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 val query = s?.toString() ?: ""
-                if (query.isNotEmpty()) {
-                    presenter.searchCocktails(query, presenter.getCurrentSearchType())
-                } else {
+                if (query.isEmpty()) {
                     presenter.clearSearchResults()
+                    showSearchHistory()
                 }
             }
         })
@@ -193,6 +194,8 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
             val query = binding.etSearch.text.toString().trim()
             if (query.isNotEmpty()) {
                 presenter.searchCocktails(query, presenter.getCurrentSearchType())
+                // Add to history when search button is clicked
+                presenter.addToHistory(query)
             } else {
                 Toast.makeText(context, getString(R.string.enter_search_query), Toast.LENGTH_SHORT).show()
             }
@@ -244,7 +247,8 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
         binding.rvSearchResults.visibility = View.VISIBLE
         binding.rvSearchHistory.visibility = View.GONE
         binding.llNoResults.visibility = View.GONE
-        searchAdapter.updateCocktails(cocktails)
+        val currentQuery = binding.etSearch.text.toString().trim()
+        searchAdapter.updateCocktails(cocktails, currentQuery)
     }
 
     override fun showNoResults() {
@@ -292,10 +296,11 @@ class SearchFragment : BaseFragment(), SearchView, FavoriteSyncManager.FavoriteU
 
     // Favorite functionality - KEPT FROM PREVIOUS IMPLEMENTATION
     private fun onFavoriteClicked(cocktail: Cocktail, isFavorite: Boolean) {
+        println("SearchFragment: onFavoriteClicked called for ${cocktail.name}, isFavorite: $isFavorite")
         if (isFavorite) {
-            Toast.makeText(context, getString(R.string.removed_from_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
-        } else {
             Toast.makeText(context, getString(R.string.added_to_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, getString(R.string.removed_from_favorites, cocktail.name), Toast.LENGTH_SHORT).show()
         }
         searchAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
         FavoriteSyncManager.updateFavorite(cocktail, isFavorite)

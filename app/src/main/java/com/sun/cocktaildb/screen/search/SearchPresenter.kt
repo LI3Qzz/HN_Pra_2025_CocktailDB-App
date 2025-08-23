@@ -57,10 +57,6 @@ class SearchPresenter(
             return
         }
 
-        // Add to search history for meaningful searches
-        if (query.trim().isNotEmpty()) {
-            addToHistory(query.trim())
-        }
 
         view?.hideHistory()
         view?.showLoading()
@@ -72,8 +68,9 @@ class SearchPresenter(
                         SearchType.NAME -> {
                             if (hasQuery) {
                                 val nameResults = cocktailRepository.searchCocktailsByName(query.trim())
-                                if (nameResults.isEmpty() && query.trim().length == 1) {
-                                    cocktailRepository.searchCocktailsByFirstLetter(query.trim())
+                                // If no results from name search, try first letter search
+                                if (nameResults.isEmpty()) {
+                                    cocktailRepository.searchCocktailsByFirstLetter(query.trim().first().toString())
                                 } else {
                                     nameResults
                                 }
@@ -101,6 +98,9 @@ class SearchPresenter(
 
                 // Apply filters if any
                 results = applyFilters(results)
+
+                // Sort results by search priority (left to right matching)
+                results = sortResultsBySearchPriority(results, query.trim())
 
                 // Update favorite status from Firebase
                 updateFavoriteStatus(results)
@@ -138,6 +138,26 @@ class SearchPresenter(
         }
 
         return filteredResults
+    }
+
+    private fun sortResultsBySearchPriority(results: List<Cocktail>, query: String): List<Cocktail> {
+        if (query.isEmpty()) return results
+        
+        return results.sortedBy { cocktail ->
+            val nameLower = cocktail.name.lowercase()
+            val queryLower = query.lowercase()
+            
+            // Find the first occurrence of the query in the cocktail name
+            val firstIndex = nameLower.indexOf(queryLower)
+            
+            // If not found, put at the end
+            if (firstIndex == -1) {
+                Int.MAX_VALUE
+            } else {
+                // Return the position (lower position = higher priority)
+                firstIndex
+            }
+        }
     }
 
     private fun updateFavoriteStatus(results: List<Cocktail>) {
@@ -207,14 +227,12 @@ class SearchPresenter(
     fun setAlcoholicFilter(filter: String?) {
         selectedAlcoholicFilter = filter
         selectedIngredientFilter = null
-        searchCocktails(currentQuery, currentSearchType)
     }
 
     // Set ingredient filter
     fun setIngredientFilter(filter: String?) {
         selectedIngredientFilter = filter
         selectedAlcoholicFilter = null
-        searchCocktails(currentQuery, currentSearchType)
     }
 
     // Add query to search history
