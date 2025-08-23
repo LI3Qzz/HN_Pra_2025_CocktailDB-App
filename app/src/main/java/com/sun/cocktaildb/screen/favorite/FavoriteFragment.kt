@@ -68,6 +68,9 @@ class FavoriteFragment : BaseFragment(), FavoriteView, FavoriteSyncManager.Favor
         needsRefresh = false
     }
 
+    // Note: setUserVisibleHint is deprecated, using onResume/onPause instead
+    // This method is kept for backward compatibility with older ViewPager implementations
+    @Deprecated("Use onResume/onPause instead", ReplaceWith("onResume()"))
     override fun setUserVisibleHint(isVisibleToUser: Boolean) {
         super.setUserVisibleHint(isVisibleToUser)
         if (isVisibleToUser && isResumed) {

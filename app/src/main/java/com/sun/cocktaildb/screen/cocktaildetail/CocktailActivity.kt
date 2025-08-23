@@ -73,7 +73,7 @@ class CocktailActivity :
     private fun setupClickListeners() {
         // Back button
         binding.ivBack.setOnClickListener {
-            onBackPressed()
+            finish()
         }
 
         // Top favorite button (in image overlay)

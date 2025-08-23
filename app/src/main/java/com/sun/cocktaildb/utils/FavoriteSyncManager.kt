@@ -96,7 +96,10 @@ object FavoriteSyncManager {
     }
 
     fun getFavoriteCocktails(): List<Cocktail> {
-        return emptyList() // Placeholder, as FavoriteManager only stores IDs
+        // This method is not used in current implementation
+        // FavoriteManager only stores IDs, not full Cocktail objects
+        // Use getFavoriteCocktailIds() instead for ID-based operations
+        return emptyList()
     }
 
     fun getFavoriteCocktailIds(): Set<String> {

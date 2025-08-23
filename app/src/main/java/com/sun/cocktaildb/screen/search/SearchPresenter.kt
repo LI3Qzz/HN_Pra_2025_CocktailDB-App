@@ -84,10 +84,13 @@ class SearchPresenter(
                         SearchType.INGREDIENT -> {
                             if (hasQuery) {
                                 cocktailRepository.searchCocktailsByIngredient(query.trim())
-                            } else if (selectedIngredientFilter != null) {
-                                cocktailRepository.searchCocktailsByIngredient(selectedIngredientFilter!!)
                             } else {
-                                cocktailRepository.searchCocktailsByFirstLetter("M")
+                                val filter = selectedIngredientFilter
+                                if (filter != null) {
+                                    cocktailRepository.searchCocktailsByIngredient(filter)
+                                } else {
+                                    cocktailRepository.searchCocktailsByFirstLetter("M")
+                                }
                             }
                         }
                         SearchType.FIRST_LETTER -> {

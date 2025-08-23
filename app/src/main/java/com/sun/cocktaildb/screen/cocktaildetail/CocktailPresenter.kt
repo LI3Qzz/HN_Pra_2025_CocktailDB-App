@@ -31,6 +31,8 @@ class CocktailPresenter(
 
     fun onDestroy() {
         view = null
+        // Cleanup executor to prevent memory leaks
+        executor.shutdown()
     }
 
     override fun loadCocktailDetail(cocktailId: String) {
@@ -73,11 +75,12 @@ class CocktailPresenter(
                         val firebaseFavorite = favoriteIds.contains(cocktailId)
                         
                         // Update local manager if there's a difference
-                        if (firebaseFavorite != isFavorite && currentCocktail != null) {
+                        val cocktail = currentCocktail
+                        if (firebaseFavorite != isFavorite && cocktail != null) {
                             if (firebaseFavorite) {
-                                FavoriteManager.addToFavorites(currentCocktail!!)
+                                FavoriteManager.addToFavorites(cocktail)
                             } else {
-                                FavoriteManager.removeFromFavorites(currentCocktail!!)
+                                FavoriteManager.removeFromFavorites(cocktail)
                             }
                             mainHandler.post {
                                 view?.updateFavoriteButton(firebaseFavorite)
