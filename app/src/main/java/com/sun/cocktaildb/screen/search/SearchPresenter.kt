@@ -98,14 +98,13 @@ class SearchPresenter(
                             }
                         }
                     }
-				
-                // Apply filters if selected
+
+                // Apply filters if any
                 results = applyFilters(results)
 
+                // Update favorite status from Firebase
+                updateFavoriteStatus(results)
 
-                
-                // Load favorite status from Firebase and update results
-                loadFavoriteStatusAndUpdateResults(results)
             } catch (e: Exception) {
                 mainHandler.post {
                     view?.hideLoading()
@@ -115,8 +114,33 @@ class SearchPresenter(
         }
     }
 
-    private fun loadFavoriteStatusAndUpdateResults(results: List<Cocktail>) {
-        // Get favorite IDs from Firebase
+    private fun applyFilters(results: List<Cocktail>): List<Cocktail> {
+        var filteredResults = results
+
+        // Apply alcoholic filter
+        selectedAlcoholicFilter?.let { filter ->
+            if (filter != "All") {
+                filteredResults = filteredResults.filter { cocktail ->
+                    cocktail.description.contains(filter, ignoreCase = true)
+                }
+            }
+        }
+
+        // Apply ingredient filter
+        selectedIngredientFilter?.let { filter ->
+            if (filter != "All") {
+                filteredResults = filteredResults.filter { cocktail ->
+                    cocktail.ingredients.any { ingredient ->
+                        ingredient.contains(filter, ignoreCase = true)
+                    }
+                }
+            }
+        }
+
+        return filteredResults
+    }
+
+    private fun updateFavoriteStatus(results: List<Cocktail>) {
         cocktailRepository.getFavouriteCocktails { result ->
             if (result.isSuccess) {
                 val favoriteIds = result.getOrNull()?.map { it.id } ?: emptyList()
@@ -135,19 +159,6 @@ class SearchPresenter(
                         FavoriteManager.removeFromFavorites(cocktail)
                     }
                 }
-                
-
-				
-                // Cache the results
-                cachedResults[cacheKey] = results
-
-                
-                // Update favorite status for all cocktails
-                val updatedResults = results.map { cocktail ->
-                    cocktail.copy(isFavorite = FavoriteManager.isFavorite(cocktail.id))
-                }
-
-				
 
                 mainHandler.post {
                     view?.hideLoading()
@@ -224,38 +235,28 @@ class SearchPresenter(
     // Get search history
     fun getSearchHistory(): List<String> = searchHistory.toList()
 
-
-
-    // Clear cache when needed
-    fun clearCache() {
-        cachedResults.clear()
+    // Clear search history
+    fun clearSearchHistory() {
+        searchHistory.clear()
+        view?.showHistory(searchHistory)
     }
 
+    // Get current query
+    fun getCurrentQuery(): String = currentQuery
 
+    // Get current filters
+    fun getCurrentFilters(): Pair<String?, String?> = Pair(selectedAlcoholicFilter, selectedIngredientFilter)
 
-    // Apply filters to cocktail list
-    private fun applyFilters(cocktails: List<Cocktail>): List<Cocktail> {
-        var filteredCocktails = cocktails
-		
-        // Apply alcoholic filter
-        selectedAlcoholicFilter?.let { alcoholicFilter ->
-            filteredCocktails =
-                filteredCocktails.filter { cocktail ->
-                    cocktail.description.contains(alcoholicFilter, ignoreCase = true)
-                }
-        }
-		
-        // Apply ingredient filter
-        selectedIngredientFilter?.let { ingredientFilter ->
-            filteredCocktails =
-                filteredCocktails.filter { cocktail ->
-                    cocktail.ingredients.any { ingredient ->
-                        ingredient.contains(ingredientFilter, ignoreCase = true)
-                    }
-                }
-        }
-		
-        return filteredCocktails
+    // Check if search is active
+    fun isSearchActive(): Boolean = currentQuery.isNotEmpty() || selectedAlcoholicFilter != null || selectedIngredientFilter != null
+
+    // Reset search state
+    fun resetSearch() {
+        currentQuery = ""
+        selectedAlcoholicFilter = null
+        selectedIngredientFilter = null
+        view?.clearSearchResults()
+        view?.showHistory(searchHistory)
     }
 }
 
