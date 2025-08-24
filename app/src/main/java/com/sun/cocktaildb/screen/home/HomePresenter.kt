@@ -54,23 +54,29 @@ class HomePresenter(
     private fun loadPopularCocktails() {
         executor.execute {
             try {
+                // Load popular cocktails first
                 val cocktails = cocktailRepository.getPopularCocktails()
+                
+                // Show cocktails immediately for better UX
+                mainHandler.post {
+                    view?.showPopularCocktails(cocktails)
+                }
+                
+                // Then update favorite status in background
                 cocktailRepository.getFavouriteCocktails { result ->
-                    val updatedCocktails =
-                        if (result.isSuccess) {
-                            val favIds = result.getOrNull().orEmpty().map { it.id }.toSet()
-                            cocktails.map { it.copy(isFavorite = favIds.contains(it.id)) }
-                        } else {
-                            cocktails
-                        }
-
-                    mainHandler.post {
-                        if (updatedCocktails.isNotEmpty()) {
+                    if (result.isSuccess) {
+                        val favIds = result.getOrNull().orEmpty().map { it.id }.toSet()
+                        val updatedCocktails = cocktails.map { it.copy(isFavorite = favIds.contains(it.id)) }
+                        
+                        mainHandler.post {
                             view?.showPopularCocktails(updatedCocktails)
-                        } else {
-                            view?.showError("No popular cocktails found. Please check your internet connection.")
+                            view?.hideLoading()
                         }
-                        view?.hideLoading()
+                    } else {
+                        // If Firebase fails, still show cocktails with local favorite status
+                        mainHandler.post {
+                            view?.hideLoading()
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -94,28 +100,12 @@ class HomePresenter(
         cocktail: Cocktail,
         isFavorite: Boolean,
     ) {
-
         // Use FavoriteSyncManager to handle all favorite operations
         // This will automatically update Firebase and notify all screens
         FavoriteSyncManager.updateFavorite(cocktail, isFavorite)
 
-        executor.execute {
-            try {
-                if (isFavorite) {
-                    cocktailRepository.addFavourite(cocktail.id)
-                } else {
-                    cocktailRepository.removeFavourite(cocktail.id)
-                }
-                
-                // Refresh popular cocktails to show updated favorite status
-                loadPopularCocktails()
-            } catch (e: Exception) {
-                mainHandler.post {
-                    view?.showError("${Constants.ERROR_UPDATING_FAVORITE}: ${e.message ?: Constants.UNKNOWN_ERROR}")
-                }
-            }
-        }
-
+        // No need to call loadPopularCocktails() here as FavoriteSyncManager will notify HomeFragment
+        // This prevents race conditions and duplicate API calls
     }
 
     fun onBottomNavigationItemSelected(itemId: Int) {

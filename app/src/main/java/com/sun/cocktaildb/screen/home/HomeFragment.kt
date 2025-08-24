@@ -84,8 +84,8 @@ class HomeFragment :
     override fun onResume() {
         super.onResume()
         presenter.onStart()
-        // Refresh popular cocktails to sync with changes from other screens
-        refreshPopularCocktailsFromOtherScreens()
+        // Sync favorite status with local manager for consistency
+        syncFavoriteStatusWithLocalManager()
     }
 
     override fun onPause() {
@@ -101,23 +101,30 @@ class HomeFragment :
 
     // FavoriteSyncManager.FavoriteUpdateListener implementations
     override fun onFavoriteUpdated(cocktailId: String, isFavorite: Boolean) {
-        // Update the specific cocktail's favorite status in the adapter
+        // Update the specific cocktail's favorite status in the adapter immediately
+        // This provides instant UI feedback without API calls
         popularCocktailAdapter.updateCocktailFavoriteStatus(cocktailId, isFavorite)
     }
 
     override fun onFavoritesRefreshed() {
-        // Refresh all popular cocktails with current favorite status
-        refreshPopularCocktailsFromOtherScreens()
-    }
-
-    private fun refreshPopularCocktailsFromOtherScreens() {
-        // Get current popular cocktails and update their favorite status
+        // Only refresh if we have cocktails loaded and need to sync with Firebase
         val currentCocktails = popularCocktailAdapter.getCurrentCocktails()
         if (currentCocktails.isNotEmpty()) {
-            // Update favorite status for each cocktail based on FavoriteManager
-            currentCocktails.forEach { cocktail ->
-                val isFavorite = FavoriteSyncManager.isFavorite(cocktail.id)
-                popularCocktailAdapter.updateCocktailFavoriteStatus(cocktail.id, isFavorite)
+            // Quick sync without reloading from API
+            syncFavoriteStatusWithLocalManager()
+        }
+    }
+
+    private fun syncFavoriteStatusWithLocalManager() {
+        // Efficient sync: only update items that need status change
+        val currentCocktails = popularCocktailAdapter.getCurrentCocktails()
+        currentCocktails.forEach { cocktail ->
+            val currentStatus = cocktail.isFavorite
+            val actualStatus = FavoriteSyncManager.isFavorite(cocktail.id)
+            
+            // Only update if status is different
+            if (currentStatus != actualStatus) {
+                popularCocktailAdapter.updateCocktailFavoriteStatus(cocktail.id, actualStatus)
             }
         }
     }

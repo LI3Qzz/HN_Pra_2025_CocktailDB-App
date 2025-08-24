@@ -27,9 +27,13 @@ class PopularCocktailAdapter(
     fun updateCocktailFavoriteStatus(cocktailId: String, isFavorite: Boolean) {
         val index = cocktails.indexOfFirst { it.id == cocktailId }
         if (index != -1) {
-            val updatedCocktail = cocktails[index].copy(isFavorite = isFavorite)
-            cocktails[index] = updatedCocktail
-            notifyItemChanged(index)
+            val currentCocktail = cocktails[index]
+            // Only update if status actually changed to avoid unnecessary UI updates
+            if (currentCocktail.isFavorite != isFavorite) {
+                val updatedCocktail = currentCocktail.copy(isFavorite = isFavorite)
+                cocktails[index] = updatedCocktail
+                notifyItemChanged(index)
+            }
         }
     }
     
