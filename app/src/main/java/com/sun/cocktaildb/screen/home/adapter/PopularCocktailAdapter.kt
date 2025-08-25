@@ -27,13 +27,9 @@ class PopularCocktailAdapter(
     fun updateCocktailFavoriteStatus(cocktailId: String, isFavorite: Boolean) {
         val index = cocktails.indexOfFirst { it.id == cocktailId }
         if (index != -1) {
-            val currentCocktail = cocktails[index]
-            // Only update if status actually changed to avoid unnecessary UI updates
-            if (currentCocktail.isFavorite != isFavorite) {
-                val updatedCocktail = currentCocktail.copy(isFavorite = isFavorite)
-                cocktails[index] = updatedCocktail
-                notifyItemChanged(index)
-            }
+            val updatedCocktail = cocktails[index].copy(isFavorite = isFavorite)
+            cocktails[index] = updatedCocktail
+            notifyItemChanged(index)
         }
     }
     
@@ -42,6 +38,11 @@ class PopularCocktailAdapter(
     }
     
     fun refreshFavorites() {
+        notifyDataSetChanged()
+    }
+    
+    fun refreshAllFavoriteStatus() {
+        // Force refresh all items to ensure favorite status is correct
         notifyDataSetChanged()
     }
 
@@ -79,7 +80,7 @@ class PopularCocktailAdapter(
 
             // Load image using Android native ImageLoader utility
             val imageUrl = cocktail.imageUrl
-                            if (imageUrl.isNotEmpty() && imageUrl != Constants.PLACEHOLDER_IMAGE_URL) {
+            if (imageUrl.isNotEmpty() && imageUrl != Constants.PLACEHOLDER_IMAGE_URL) {
                 ImageLoader.loadImage(ivCocktail, imageUrl, R.drawable.placeholder)
             } else {
                 ivCocktail.setImageResource(R.drawable.placeholder)
@@ -95,6 +96,7 @@ class PopularCocktailAdapter(
                 val animation = AnimationUtils.loadAnimation(itemView.context, R.anim.favorite_scale)
                 ivFavorite.startAnimation(animation)
                 
+                // Toggle favorite status
                 val newFavoriteStatus = !cocktail.isFavorite
                 onFavoriteClickListener(cocktail, newFavoriteStatus)
             }
