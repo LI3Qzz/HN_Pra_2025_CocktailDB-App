@@ -117,6 +117,50 @@
 
     </androidx.cardview.widget.CardView>
 
+    <!-- Language Selection Card -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        android:layout_marginBottom="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Language Field -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/language"
+                android:textColor="#333333"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tv_language"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/input_background"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textColor="#333333"
+                android:textSize="14sp"
+                android:clickable="true"
+                android:focusable="true"
+                android:backgroundTint="@color/white"
+                android:drawableEnd="@drawable/ic_arrow_drop_down"
+                android:drawablePadding="8dp" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
     <!-- Logout Button -->
     <Button
         android:id="@+id/btn_logout"

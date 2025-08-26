@@ -188,8 +188,10 @@ class CocktailActivity :
         binding.ivFavorite.apply {
             if (isFavorite) {
                 setImageResource(R.drawable.ic_favorite_filled_black_24dp)
+                setColorFilter(getColor(R.color.colorPrimary))
             } else {
                 setImageResource(R.drawable.ic_favorite_border_black_24dp)
+                clearColorFilter()
             }
         }
 

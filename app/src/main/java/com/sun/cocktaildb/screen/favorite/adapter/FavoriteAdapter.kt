@@ -50,8 +50,9 @@ class FavoriteAdapter(
             holder.binding.ivCocktailImage.setImageResource(R.drawable.placeholder)
         }
         
-        // Set favorite icon (always filled since this is favorites list)
+        // Set favorite icon (always filled since this is favorites list) with red color
         holder.binding.ivFavorite.setImageResource(R.drawable.ic_favorite_filled_black_24dp)
+        holder.binding.ivFavorite.setColorFilter(holder.binding.root.context.getColor(R.color.colorPrimary))
         
         // Set click listeners
         holder.binding.root.setOnClickListener { 

@@ -92,4 +92,13 @@
     <string name="search">Search</string>
     <string name="enter_search_query">Please enter a search query</string>
 
+    <!-- Language selection strings -->
+    <string name="language">Language</string>
+    <string name="language_english">English</string>
+    <string name="language_vietnamese">Vietnamese</string>
+    <string name="language_changed">Language has been changed</string>
+    <string name="restart_app_message">Please restart the app to apply language changes</string>
+    <string name="restart_app">Restart App</string>
+    <string name="cancel">Cancel</string>
+
 </resources>

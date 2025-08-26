@@ -20,6 +20,8 @@ import com.sun.cocktaildb.databinding.FragmentProfileBinding
 import com.sun.cocktaildb.screen.authenticate.login.LoginActivity
 import com.sun.cocktaildb.utils.base.BaseFragment
 import com.sun.cocktaildb.utils.dialog.LoadingDialog
+import com.sun.cocktaildb.utils.LanguageManager
+import com.sun.cocktaildb.utils.LanguageUtils
 
 /**
  * Profile Fragment for displaying and editing user profile information
@@ -57,6 +59,9 @@ class ProfileFragment :
 
         // Load user profile
         presenter.loadUserProfile()
+        
+        // Update language display
+        updateLanguageDisplay()
     }
 
     /**
@@ -73,6 +78,10 @@ class ProfileFragment :
 
         binding.btnLogout.setOnClickListener {
             presenter.logout()
+        }
+        
+        binding.tvLanguage.setOnClickListener {
+            showLanguageSelectionDialog()
         }
 
         // Add text change listeners to update presenter when fields change
@@ -185,5 +194,66 @@ class ProfileFragment :
 
     override fun onDestroyView() {
         super.onDestroyView()
+    }
+    
+    /**
+     * Show language selection dialog
+     */
+    private fun showLanguageSelectionDialog() {
+        val currentLanguage = LanguageManager.getCurrentLanguage(requireContext())
+        val languages = arrayOf(
+            getString(R.string.language_english),
+            getString(R.string.language_vietnamese)
+        )
+        
+        val checkedItem = when (currentLanguage) {
+            LanguageManager.LANGUAGE_ENGLISH -> 0
+            LanguageManager.LANGUAGE_VIETNAMESE -> 1
+            else -> 0
+        }
+        
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.language))
+            .setSingleChoiceItems(languages, checkedItem) { _, which ->
+                val selectedLanguage = when (which) {
+                    0 -> LanguageManager.LANGUAGE_ENGLISH
+                    1 -> LanguageManager.LANGUAGE_VIETNAMESE
+                    else -> LanguageManager.LANGUAGE_ENGLISH
+                }
+                
+                if (selectedLanguage != currentLanguage) {
+                    changeLanguage(selectedLanguage)
+                }
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+    
+    /**
+     * Change app language
+     */
+    private fun changeLanguage(languageCode: String) {
+        LanguageManager.setLanguage(requireContext(), languageCode)
+        
+        // Show restart dialog
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.language_changed))
+            .setMessage(getString(R.string.restart_app_message))
+            .setPositiveButton(getString(R.string.restart_app)) { _, _ ->
+                // Restart the app using LanguageUtils
+                LanguageUtils.restartApp(requireActivity())
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .setCancelable(false)
+            .show()
+    }
+    
+    /**
+     * Update language display text
+     */
+    private fun updateLanguageDisplay() {
+        val currentLanguage = LanguageManager.getCurrentLanguage(requireContext())
+        val languageText = LanguageManager.getLanguageDisplayName(requireContext(), currentLanguage)
+        binding.tvLanguage.text = languageText
     }
 }

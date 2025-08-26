@@ -102,12 +102,15 @@ class SearchAdapter(
                 binding.ivCocktailImage.setImageResource(R.drawable.placeholder)
             }
 
-            // MERGED: Set favorite button state (both versions are identical)
+            // MERGED: Set favorite button state with color (both versions are identical)
             binding.ivFavorite.isSelected = cocktail.isFavorite
-            binding.ivFavorite.setImageResource(
-                if (cocktail.isFavorite) R.drawable.ic_favorite_filled_black_24dp
-                else R.drawable.ic_favorite_border_black_24dp
-            )
+            if (cocktail.isFavorite) {
+                binding.ivFavorite.setImageResource(R.drawable.ic_favorite_filled_black_24dp)
+                binding.ivFavorite.setColorFilter(binding.root.context.getColor(R.color.colorPrimary))
+            } else {
+                binding.ivFavorite.setImageResource(R.drawable.ic_favorite_border_black_24dp)
+                binding.ivFavorite.clearColorFilter()
+            }
         }
         
         // MERGED: Keep highlighting functionality from upstream for better UX

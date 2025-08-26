@@ -105,8 +105,10 @@ class PopularCocktailAdapter(
         private fun updateFavoriteIcon(isFavorite: Boolean) {
             if (isFavorite) {
                 ivFavorite.setImageResource(R.drawable.ic_favorite_filled_black_24dp)
+                ivFavorite.setColorFilter(itemView.context.getColor(R.color.colorPrimary))
             } else {
                 ivFavorite.setImageResource(R.drawable.ic_favorite_border_black_24dp)
+                ivFavorite.clearColorFilter()
             }
         }
     }
